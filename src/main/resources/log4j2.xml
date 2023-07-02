@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" packages="org.apache.logging.log4j.core,io.sentry.log4j2">
+    <Properties>
+        <Property name="FILE_LOG_PATTERN">%d{yyyy-MM-dd_HH:mm:ss.SSS} %level [%thread] [%logger:%line] ::: %msg%n</Property>
+    </Properties>
+    <Appenders>
+        <RollingFile name="RollingFile">
+            <FileName>/Users/iminseo/Desktop/log/mylog.log</FileName>
+            <FilePattern>/Users/iminseo/Desktop/log/time-based-logs/%d{yyyy-MM-dd-hh-mm}.log.zip</FilePattern>
+            <PatternLayout>
+                <Pattern>%d{yyyy-MMM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-5p: %c - %m%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.springframework.web" level="info"/>
+        <Logger name="org.springframework.security" level="info"/>
+        <logger name="org.springframework.data.r2dbc" level="info"/>
+        <Logger name="com.skp.iot" level="info"/>
+        <Root level="info">
+<!--            <AppenderRef ref="RollingFile"/>-->
+            <AppenderRef ref="console"/>
+        </Root>
+        <logger name="log4j2.test" additivity="false" >
+            <AppenderRef ref="console" level="info" />
+        </logger>
+    </Loggers>
+</Configuration>

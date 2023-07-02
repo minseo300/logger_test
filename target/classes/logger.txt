@@ -1,0 +1,2 @@
+Logger1,info,true,size,5,20s,true,TestMessageFormatter
+Logger2,info,false,time,second,10,20s,TestMessageFormatter

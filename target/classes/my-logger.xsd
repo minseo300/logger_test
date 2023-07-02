@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://www.example.org/sqlmap"
+        xmlns:tns="http://www.example.org/sqlmap"
+        elementFormDefault="qualified">
+    <element name="myLog" type="MyLogType"/>
+    <complexType name="MyLogType">
+        <sequence>
+            <element name="loggers" type="LoggersType"/>
+        </sequence>
+    </complexType>
+    <complexType name="LoggersType">
+        <sequence>
+            <element name="logger1" type="Logger1Parameter" minOccurs="0" maxOccurs="1"/>
+            <element name="logger2" type="Logger2Parameter" minOccurs="0" maxOccurs="1"/>
+        </sequence>
+    </complexType>
+    <complexType name="MyLoggerParameter">
+        <sequence>
+            <element name="level" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="async" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="path" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="formatter" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="layoutPattern" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="rollingPolicy" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="sizeBasePolicyValue" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="timeBasePolicyUnit" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="timeBasePolicyValue" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="limitRollingFileNumber" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="deleteRollingFilePeriod" type="string" minOccurs="0" maxOccurs="1"/>
+        </sequence>
+    </complexType>
+    <complexType name="Logger1Parameter">
+        <complexContent>
+            <extension base="MyLoggerParameter">
+                <sequence>
+                    <element name="logDebugEnable" type="string" minOccurs="0" maxOccurs="1"/>
+                </sequence>
+            </extension>
+        </complexContent>
+    </complexType>
+    <complexType name="Logger2Parameter">
+        <complexContent>
+            <extension base="MyLoggerParameter"></extension>
+        </complexContent>
+    </complexType>
+</schema>
