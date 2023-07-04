@@ -7,6 +7,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.rolling.*;
 import ch.qos.logback.core.util.FileSize;
@@ -14,6 +15,8 @@ import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import sun.rmi.runtime.Log;
+
+import java.sql.Time;
 
 // org.slf4j.Logger
 public class Logback implements Mlf4j {
@@ -32,13 +35,11 @@ public class Logback implements Mlf4j {
      * @param params
      */
     public void configureDefault(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params){
-        System.out.println("Logback configureDefault");
         String path = params.getPath();
         String timeBasePolicyUnit=params.getTimeBasePolicyUnit();
         String rollingPolicy=params.getRollingPolicy();
         String rotatedFileName = path + fileName + MyLogger.getRotateFileNamePattern(timeBasePolicyUnit, rollingPolicy)
                 + ".log";
-        System.out.println("rotatedFileName: "+rotatedFileName);
         String timeBasePolicyValue=params.getTimeBasePolicyValue();
         String deleteRollingFilePeriod=params.getDeleteRollingFilePeriod();
         String sizeBasePolicyValue=params.getSizeBasePolicyValue();
@@ -57,122 +58,61 @@ public class Logback implements Mlf4j {
         logEncoder.setPattern(layoutPattern);
         logEncoder.start();
 
-
-        RollingFileAppender logFileAppender = new RollingFileAppender();
-//        LogbackCustomRollingFileAppender logFileAppender=new LogbackCustomRollingFileAppender(timeBasePolicyUnit,timeBasePolicyValue,);
-        if(rollingPolicy.equals("time")){ // time based rolling file appender
-            TimeBasedRollingPolicy logFilePolicy = new TimeBasedRollingPolicy();
-            logFilePolicy.setContext(context);
-            logFilePolicy.setFileNamePattern(rotatedFileName);
-            logFilePolicy.setMaxHistory(MyLogger.getLogbackMaxHistory(deleteRollingFilePeriod));
-            if(!timeBasePolicyValue.isEmpty()){
-                System.out.println("custom");
-                logFileAppender=new LogbackCustomRollingFileAppender(timeBasePolicyUnit,timeBasePolicyValue,logFilePolicy,limitRollingFileNumber,path,fileName);
-                logFileAppender.rollover();
+        RollingFileAppender logFileAppender=null;
+        if(rollingPolicy.equals("time")){
+            // timeBasePolicyValue, timeBasePolicyUnit
+            TimeBasedRollingPolicy timeBasedRollingPolicy=new TimeBasedRollingPolicy();
+            if(!deleteRollingFilePeriod.isEmpty()){
+                // deleteRollingFilePeriod - setMaxHistory
+                logFileAppender=new TimeRollingFileAppender(timeBasePolicyValue,timeBasePolicyUnit,path,fileName);
+                timeBasedRollingPolicy.setMaxHistory(MyLogger.getLogbackMaxHistory(deleteRollingFilePeriod));
             }
-            logFilePolicy.setParent(logFileAppender);
-//            logFilePolicy.start();
-            logFileAppender.setRollingPolicy(logFilePolicy);
+            else{
+                // limitRollingFileNumber
+                logFileAppender=new TimeRollingFileAppender(timeBasePolicyValue,timeBasePolicyUnit,limitRollingFileNumber,path,fileName);
+            }
+            timeBasedRollingPolicy.setContext(context);
+            timeBasedRollingPolicy.setParent(logFileAppender);
+            timeBasedRollingPolicy.setFileNamePattern(rotatedFileName);
+            timeBasedRollingPolicy.start();
+
+            logFileAppender.setRollingPolicy(timeBasedRollingPolicy);
+        }
+        else if(rollingPolicy.equals("size")){
+            System.out.println("size");
+            // sizeBasePolicyValue
+            FixedWindowRollingPolicy sizeBasedRollingPolicy=new FixedWindowRollingPolicy();
+            SizeBasedTriggeringPolicy sizeBasedTriggeringPolicy=new SizeBasedTriggeringPolicy();
+            if(!deleteRollingFilePeriod.isEmpty()){
+                // to keep alive created log files while deleteRollingFilePeriod - setMaxHistory
+                System.out.println("deletePeriod");
+                logFileAppender=new SizeRollingFileAppender(path,fileName,deleteRollingFilePeriod);
+            }
+            else{
+                // limitRollingFileNumber
+                logFileAppender=new SizeRollingFileAppender(path,fileName);
+            }
+
+            logFileAppender.setFile(path+fileName+".log");
+            logFileAppender.setContext(context);
+
+            sizeBasedRollingPolicy.setContext(context);
+            sizeBasedRollingPolicy.setMaxIndex(Integer.parseInt(limitRollingFileNumber)-1);
+            sizeBasedRollingPolicy.setMinIndex(1);
+            sizeBasedRollingPolicy.setParent(logFileAppender);
+            sizeBasedRollingPolicy.setFileNamePattern(rotatedFileName);
+            sizeBasedRollingPolicy.start();
+
+            sizeBasedTriggeringPolicy.setContext(context);
+            sizeBasedTriggeringPolicy.setMaxFileSize(FileSize.valueOf("1kb"));
+            sizeBasedTriggeringPolicy.start();
+
+            logFileAppender.setRollingPolicy(sizeBasedRollingPolicy);
+            logFileAppender.setTriggeringPolicy(sizeBasedTriggeringPolicy);
+
+            logFileAppender.start();
 
         }
-        else{ // size based rolling file appender
-            SizeAndTimeBasedRollingPolicy logFilePolicy=new SizeAndTimeBasedRollingPolicy<>();
-            SizeBasedTriggeringPolicy triggeringPolicy=new SizeBasedTriggeringPolicy();
-            triggeringPolicy.setContext(context);
-            triggeringPolicy.start();
-            triggeringPolicy.setMaxFileSize(FileSize.valueOf(sizeBasePolicyValue));
-
-            logFilePolicy.setContext(context);
-            logFilePolicy.setMaxFileSize(FileSize.valueOf(sizeBasePolicyValue));
-            logFilePolicy.setParent(logFileAppender);
-            logFilePolicy.setFileNamePattern(rotatedFileName);
-            logFilePolicy.setMaxHistory(MyLogger.getLogbackMaxHistory(deleteRollingFilePeriod));
-            logFilePolicy.start();
-
-            logFileAppender.setRollingPolicy(logFilePolicy);
-            logFileAppender.setTriggeringPolicy(triggeringPolicy);
-//            logFileAppender.start();
-        }
-
-        logFileAppender.setContext(context);
-        logFileAppender.setName(appenderName);
-        logFileAppender.setEncoder(logEncoder);
-        logFileAppender.setAppend(true);
-        logFileAppender.setFile(path+fileName+".log");
-        logFileAppender.start();
-
-//        TimeBasedRollingPolicy rollingFilePolicy=null;
-//        SizeAndTimeBasedRollingPolicy sizeAndTimeBasedRollingPolicy=null;
-//        SizeBasedTriggeringPolicy sizeBasedTriggeringPolicy=null;
-//        RollingFileAppender logFileAppender=null;
-//
-//        if(rollingPolicy.equals("time")){
-//            rollingFilePolicy=new TimeBasedRollingPolicy();
-//            rollingFilePolicy.setContext(context);
-//            rollingFilePolicy.setFileNamePattern(rotatedFileName);
-//            rollingFilePolicy.setMaxHistory(MyLogger.getLogbackMaxHistory(deleteRollingFilePeriod));
-//
-//            logFileAppender=new LogbackCustomRollingFileAppender.Builder(timeBasePolicyUnit,timeBasePolicyValue)
-//                    .limitRollingFileNumber(limitRollingFileNumber)
-//                    .rollingPolicy(rollingFilePolicy)
-//                    .path(path)
-//                    .fileName(fileName)
-//                    .build();
-//            logFileAppender.rollover();
-//        }
-//        else if(rollingPolicy.equals("size")){
-//            System.out.println("size");
-//            sizeAndTimeBasedRollingPolicy=new SizeAndTimeBasedRollingPolicy();
-//            sizeAndTimeBasedRollingPolicy.setMaxFileSize(FileSize.valueOf(sizeBasePolicyValue));
-//            sizeAndTimeBasedRollingPolicy.setContext(context);
-//            sizeAndTimeBasedRollingPolicy.setFileNamePattern(rotatedFileName);
-//            sizeAndTimeBasedRollingPolicy.setMaxHistory(MyLogger.getLogbackMaxHistory(deleteRollingFilePeriod));
-//
-//            sizeBasedTriggeringPolicy=new SizeBasedTriggeringPolicy();
-//            sizeBasedTriggeringPolicy.setContext(context);
-//            sizeBasedTriggeringPolicy.start();
-//            sizeBasedTriggeringPolicy.setMaxFileSize(FileSize.valueOf(sizeBasePolicyValue));
-//
-//            logFileAppender=new LogbackCustomSizeRollingFileAppender.Builder()
-//                    .limitRollingFileNumber(limitRollingFileNumber)
-//                    .rollingPolicy(sizeAndTimeBasedRollingPolicy)
-//                    .triggeringPolicy(sizeBasedTriggeringPolicy)
-//                    .sizeAndTimeBasedPolicy(sizeAndTimeBasedRollingPolicy)
-//                    .path(path)
-//                    .fileName(fileName)
-//                    .build();
-//
-////            logFileAppender.rollover();
-//        }
-//
-////        LogbackCustomRollingFileAppender logFileAppender=new LogbackCustomRollingFileAppender.Builder(timeBasePolicyUnit,timeBasePolicyValue)
-////                .limitRollingFileNumber(limitRollingFileNumber)
-////                .rollingPolicy(rollingFilePolicy)
-////                .sizeBasedTriggeringPolicy(sizeBasedTriggeringPolicy)
-////                .sizeAndTimeBasedPolicy(sizeAndTimeBasedRollingPolicy)
-////                .path(path)
-////                .fileName(fileName)
-////                .build();
-//
-//        if(rollingFilePolicy!=null){
-//            rollingFilePolicy.setParent(logFileAppender);
-//            rollingFilePolicy.start();
-//            logFileAppender.setRollingPolicy(rollingFilePolicy);
-//        }
-//        else{
-//            sizeAndTimeBasedRollingPolicy.setParent(logFileAppender);
-//            sizeAndTimeBasedRollingPolicy.start();
-//            sizeBasedTriggeringPolicy.start();
-//            logFileAppender.setTriggeringPolicy(sizeBasedTriggeringPolicy);
-//            logFileAppender.setRollingPolicy(sizeAndTimeBasedRollingPolicy);
-//
-//            logFileAppender.setContext(context);
-//            logFileAppender.setName(appenderName);
-//            logFileAppender.setEncoder(logEncoder);
-//            logFileAppender.setAppend(true);
-//            logFileAppender.setFile(path+fileName+".log");
-//            logFileAppender.start();
-//        }
 
         if(async){
             AsyncAppender asyncAppender=new AsyncAppender();
@@ -182,7 +122,7 @@ public class Logback implements Mlf4j {
             asyncAppender.start();
         }
 
-//        logFileAppender.rollover();
+        logFileAppender.rollover();
         logFileAppender.setContext(context);
         logFileAppender.setName(appenderName);
         logFileAppender.setEncoder(logEncoder);

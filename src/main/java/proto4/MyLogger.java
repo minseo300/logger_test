@@ -45,7 +45,7 @@ public class MyLogger {
         String pattern;
 
         if (rollingPolicy.equals("size")) {
-            pattern = "_%d{yyMMdd_HHmmss}";
+            pattern = "-%i";
         } else {
             switch (timeUnit) {
                 case "day":
