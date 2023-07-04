@@ -1,0 +1,22 @@
+loggers:
+  type: log4j2
+  Logger1:
+    level: INFO
+    async: true
+    formatter: TestMessageFormatter
+    path: /Users/iminseo/Desktop/logs/
+    rollingPolicy: size
+    limitRollingFileNumber: 5
+    deleteRollingFilePeriod: 20s
+    logDebugEnable: true
+  Logger2:
+    level: INFO
+    async: false
+    path: /Users/iminseo/Desktop/logs
+    formatter: TestMessageFormatter
+    rollingPolicy: time
+    timeBasePolicyUnit: second
+    timeBasePolicyValue: 10
+    deleteRollingFilePeriod: 20s
+
+

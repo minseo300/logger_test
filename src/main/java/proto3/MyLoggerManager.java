@@ -15,12 +15,17 @@
 //    }
 //    public String getFrameworkType(){return this.frameworkType;}
 //
-//    public void init(String frameworkType) throws IOException {
+//    public void init() throws IOException {
+//        readProperties();
 //        this.frameworkType=frameworkType;
 //        this.loggerRegistry=new HashMap<>();
 //
+//
 //        Logger1.initialize(frameworkType);
 //        Logger2.initialize(frameworkType);
+//    }
+//    public void readProperties(){
+//
 //    }
 //    public void addLogger(String loggerName, MyLogger logger){
 //        loggerRegistry.put(loggerName,logger);

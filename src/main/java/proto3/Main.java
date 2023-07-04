@@ -14,7 +14,7 @@
 ////        String configureMode=scanner.next();
 //
 //        MyLoggerManager loggerManager= MyLoggerManager.getMyLoggerManager();
-//        loggerManager.init(loggingFrameworkType);
+//        loggerManager.init();
 //
 //        Logger1 logger1= Logger1.getLogger();
 ////        Logger1 logger1=loggerManager.getLogger1Logger("initial.Logger1");
