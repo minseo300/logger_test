@@ -57,7 +57,6 @@ public class Logback implements Mlf4j {
         logEncoder.setContext(context);
         logEncoder.setPattern(layoutPattern);
         logEncoder.start();
-
         RollingFileAppender logFileAppender=null;
         if(rollingPolicy.equals("time")){
             // timeBasePolicyValue, timeBasePolicyUnit
@@ -79,13 +78,11 @@ public class Logback implements Mlf4j {
             logFileAppender.setRollingPolicy(timeBasedRollingPolicy);
         }
         else if(rollingPolicy.equals("size")){
-            System.out.println("size");
             // sizeBasePolicyValue
-            FixedWindowRollingPolicy sizeBasedRollingPolicy=new FixedWindowRollingPolicy();
+            SizeBasedRollingPolicy sizeBasedRollingPolicy=new SizeBasedRollingPolicy();
             SizeBasedTriggeringPolicy sizeBasedTriggeringPolicy=new SizeBasedTriggeringPolicy();
             if(!deleteRollingFilePeriod.isEmpty()){
                 // to keep alive created log files while deleteRollingFilePeriod - setMaxHistory
-                System.out.println("deletePeriod");
                 logFileAppender=new SizeRollingFileAppender(path,fileName,deleteRollingFilePeriod);
             }
             else{
@@ -97,7 +94,7 @@ public class Logback implements Mlf4j {
             logFileAppender.setContext(context);
 
             sizeBasedRollingPolicy.setContext(context);
-            sizeBasedRollingPolicy.setMaxIndex(Integer.parseInt(limitRollingFileNumber)-1);
+            sizeBasedRollingPolicy.setMaxIndex(Integer.parseInt(limitRollingFileNumber));
             sizeBasedRollingPolicy.setMinIndex(1);
             sizeBasedRollingPolicy.setParent(logFileAppender);
             sizeBasedRollingPolicy.setFileNamePattern(rotatedFileName);

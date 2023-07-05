@@ -43,7 +43,6 @@ public class MyLogger {
     public static String getRotateFileNamePattern (String timeUnit,
                                                    String rollingPolicy) {
         String pattern;
-
         if (rollingPolicy.equals("size")) {
             pattern = "-%i";
         } else {

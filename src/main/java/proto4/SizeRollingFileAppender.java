@@ -33,9 +33,7 @@ public class SizeRollingFileAppender<E> extends RollingFileAppender<E> {
 
     @Override
     public void rollover() {
-//        rollingPolicy.setParent(this);
-//        rollingPolicy.start();
-//        System.out.println(this.triggeringPolicy.getClass());
+
         System.out.println("rollover "+deleteRollingFilePeriod);
         if(deleteRollingFilePeriod!=null) {
             try {
