@@ -92,8 +92,10 @@ public class TimeRollingFileAppender<E> extends RollingFileAppender<E> {
         List<File> files= Arrays.asList(dir.listFiles(filter));
         Collections.sort(files);
         if(files.size()>this.limitRollingFileNumber){
-            for(int i=0;i<files.size()-this.limitRollingFileNumber;i++)
-                Files.deleteIfExists(Paths.get(files.get(i).getPath()));
+            Files.deleteIfExists(Paths.get(files.get(0).getPath()));
+
+//            for(int i=0;i<files.size()-this.limitRollingFileNumber;i++)
+//                Files.deleteIfExists(Paths.get(files.get(i).getPath()));
         }
     }
 }
