@@ -84,24 +84,26 @@ public class Logback implements Mlf4j {
             if(!deleteRollingFilePeriod.isEmpty()){
                 // to keep alive created log files while deleteRollingFilePeriod - setMaxHistory
                 logFileAppender=new SizeRollingFileAppender(path,fileName,deleteRollingFilePeriod);
+                sizeBasedRollingPolicy.setDeleteRollingFilePeriod(deleteRollingFilePeriod);
+
             }
             else{
                 // limitRollingFileNumber
                 logFileAppender=new SizeRollingFileAppender(path,fileName);
+                sizeBasedRollingPolicy.setMaxIndex(Integer.parseInt(limitRollingFileNumber));
             }
 
             logFileAppender.setFile(path+fileName+".log");
             logFileAppender.setContext(context);
 
             sizeBasedRollingPolicy.setContext(context);
-            sizeBasedRollingPolicy.setMaxIndex(Integer.parseInt(limitRollingFileNumber));
             sizeBasedRollingPolicy.setMinIndex(1);
             sizeBasedRollingPolicy.setParent(logFileAppender);
             sizeBasedRollingPolicy.setFileNamePattern(rotatedFileName);
             sizeBasedRollingPolicy.start();
 
             sizeBasedTriggeringPolicy.setContext(context);
-            sizeBasedTriggeringPolicy.setMaxFileSize(FileSize.valueOf("1kb"));
+            sizeBasedTriggeringPolicy.setMaxFileSize(FileSize.valueOf(sizeBasePolicyValue));
             sizeBasedTriggeringPolicy.start();
 
             logFileAppender.setRollingPolicy(sizeBasedRollingPolicy);
@@ -119,7 +121,7 @@ public class Logback implements Mlf4j {
             asyncAppender.start();
         }
 
-        logFileAppender.rollover();
+//        logFileAppender.rollover();
         logFileAppender.setContext(context);
         logFileAppender.setName(appenderName);
         logFileAppender.setEncoder(logEncoder);
@@ -139,15 +141,7 @@ public class Logback implements Mlf4j {
     public void configureConsole(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params){
 
     }
-    public void timeBaseAppender(){
 
-    }
-    public void sizeBaseAppender(){
-
-    }
-    public void customTimeBaseAppender(){
-
-    }
     public void info(String msg){
         this.logger.info(String.valueOf(logger.getClass()));
         this.logger.info(String.valueOf(logger.getAppender("defaultLogger1Appender").getClass()));

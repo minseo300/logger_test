@@ -65,6 +65,8 @@ public class MyLogger {
         }
         return pattern;
     }
+
+    // convert deletePeriod string to time int
     public static int getLogbackMaxHistory (String deleteRollingFilePeriod) {
         int maxHistory=0;
         String timeUnit=deleteRollingFilePeriod.substring(deleteRollingFilePeriod.length()-1);

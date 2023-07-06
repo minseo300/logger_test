@@ -16,7 +16,10 @@ package proto4;
 import static ch.qos.logback.core.CoreConstants.CODES_URL;
 
 import java.io.File;
-import java.util.Date;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.FileAppender;
@@ -39,12 +42,12 @@ public class SizeBasedRollingPolicy extends RollingPolicyBase {
     static final String SEE_PARENT_FN_NOT_SET = "Please refer to "+CODES_URL+"#fwrp_parentFileName_not_set";
     int maxIndex;
     int minIndex;
-    RenameUtil util = new RenameUtil();
+    static RenameUtil util = new RenameUtil();
     Compressor compressor;
 
     protected CompressionMode compressionMode = CompressionMode.NONE;
 
-    FileNamePattern fileNamePattern;
+    static FileNamePattern fileNamePattern;
     // fileNamePatternStr is always slashified, see setter
     String fileNamePatternStr;
 
@@ -54,17 +57,18 @@ public class SizeBasedRollingPolicy extends RollingPolicyBase {
     FileNamePattern zipEntryFileNamePattern;
     private boolean started;
     private int numberOfFiles=0;
+    private String deleteRollingFilePeriod;
 
     public static final String ZIP_ENTRY_DATE_PATTERN = "yyyy-MM-dd_HHmm";
 
     /**
      * It's almost always a bad idea to have a large window size, say over 20.
      */
-    private static int MAX_WINDOW_SIZE = 20;
+    private static int MAX_WINDOW_SIZE = 1000000;
 
     public SizeBasedRollingPolicy() {
         minIndex = 1;
-        maxIndex = 7;
+        maxIndex = 1000000;
     }
 
     public void start() {
@@ -136,15 +140,34 @@ public class SizeBasedRollingPolicy extends RollingPolicyBase {
     }
 
     public void rollover() throws RolloverFailure {
-        System.out.println(numberOfFiles);
+        System.out.println("rolling policy present numberOfFiles: "+numberOfFiles);
         // delete the oldest log file if the number of files is over than limitRollingFileNumber(maxIndex)
+        if(maxIndex<1000000){
+            System.out.println("limitRollOver");
+            limitRollover();
+        }
+        else{
+            try {
+                System.out.println("deleteRollOver");
+                deleteRollover();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        System.out.println("dfas");
+        // rollover active file(fileName.log) by triggering event
+        util.rename(getActiveFileName(), fileNamePattern.convertInt(numberOfFiles+1));
+        numberOfFiles++;
+        System.out.println(numberOfFiles);
+    }
+    public void limitRollover(){
         if(maxIndex<=numberOfFiles){
             File file = new File(fileNamePattern.convertInt(minIndex));
             if (file.exists()) {
                 file.delete();
                 numberOfFiles--;
             }
-
             for(int i=minIndex+1;i<=maxIndex;i++){
                 String toRenameStr = fileNamePattern.convertInt(i);
                 File toRename = new File(toRenameStr);
@@ -155,15 +178,49 @@ public class SizeBasedRollingPolicy extends RollingPolicyBase {
                     addInfo("Skipping roll-over for inexistent file " + toRenameStr);
                 }
             }
-
-
         }
-
-        // rollover active file(fileName.log) by triggering event
-        util.rename(getActiveFileName(), fileNamePattern.convertInt(numberOfFiles+1));
-        numberOfFiles++;
-
     }
+    public void deleteRollover() throws IOException {
+        System.out.println("deleteRollingFilePeriod: "+deleteRollingFilePeriod);
+        long currentTime = System.currentTimeMillis();
+        System.out.println(currentTime);
+        int converted=MyLogger.getLogbackMaxHistory(deleteRollingFilePeriod);
+        System.out.println(converted);
+        int maxIntervalSinceLastLoggingInMillis = MyLogger.getLogbackMaxHistory(deleteRollingFilePeriod) * 1000;
+        System.out.println(maxIntervalSinceLastLoggingInMillis);
+        int deletedFileNumber=0,maxIndex=numberOfFiles;
+        for (int i = minIndex; i <= maxIndex; i++) {
+            File file = new File(fileNamePattern.convertInt(i));
+            System.out.println(file.getPath());
+            FileTime creationTime = (FileTime) Files.getAttribute(file.toPath(), "creationTime");
+            long createdTime = creationTime.toMillis();
+            // 결과 출력
+//            System.out.println(creationTime);
+            if ((currentTime - createdTime) >= maxIntervalSinceLastLoggingInMillis) {
+                System.out.println(creationTime);
+                Files.deleteIfExists(Paths.get(file.getPath()));
+                deletedFileNumber++;
+                numberOfFiles--;
+            }
+            else break;
+        }
+        if(deletedFileNumber>0) {
+            for(int i=minIndex+deletedFileNumber;i<=maxIndex;i++){
+                String toRenameStr = fileNamePattern.convertInt(i);
+                File toRename = new File(toRenameStr);
+                // no point in trying to rename an inexistent file
+                if (toRename.exists()) {
+                    util.rename(toRenameStr, fileNamePattern.convertInt(i - deletedFileNumber));
+                } else {
+                    addInfo("Skipping roll-over for inexistent file " + toRenameStr);
+                }
+            }
+        }
+        System.out.println("deleteRollOver: "+numberOfFiles);
+    }
+
+
+
 
     /**
      * Return the value of the parent's RawFile property.
@@ -189,5 +246,8 @@ public class SizeBasedRollingPolicy extends RollingPolicyBase {
 
     public void setMinIndex(int minIndex) {
         this.minIndex = minIndex;
+    }
+    public void setDeleteRollingFilePeriod(String deleteRollingFilePeriod){
+        this.deleteRollingFilePeriod=deleteRollingFilePeriod;
     }
 }
