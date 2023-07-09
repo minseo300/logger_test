@@ -1,5 +1,7 @@
 package proto4;
 
+import ch.qos.logback.core.LayoutBase;
+import org.apache.logging.log4j.message.MessageFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -62,5 +64,23 @@ public class MyLoggerManager {
     public Logger2 getLogger2Logger(String loggerName){
         return (Logger2) loggerRegistry.get(loggerName);
     }
+
+//    public static MessageFactory getLogFormatter(String loggerName) {
+//        MessageFactory factory = loggerMessageFactories.get(loggerName);
+//        while (factory == null) {
+//            int index = loggerName.lastIndexOf(".");
+//            if (index != -1) {
+//                loggerName = loggerName.substring(0, index);
+//                factory = loggerMessageFactories.get(loggerName);
+//            } else {
+//                break;
+//            }
+//        }
+//        return factory;
+//    }
+
+//    public static LayoutBase getLogbackLogFormatter(String loggerName){
+//
+//    }
 
 }

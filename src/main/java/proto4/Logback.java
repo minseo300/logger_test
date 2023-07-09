@@ -9,7 +9,10 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
+import ch.qos.logback.core.joran.action.ConversionRuleAction;
+import ch.qos.logback.core.pattern.ConverterUtil;
 import ch.qos.logback.core.rolling.*;
 import ch.qos.logback.core.util.FileSize;
 import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
@@ -18,6 +21,8 @@ import org.slf4j.Marker;
 import sun.rmi.runtime.Log;
 
 import java.sql.Time;
+import java.util.HashMap;
+import java.util.Map;
 
 // org.slf4j.Logger
 public class Logback implements Mlf4j {
@@ -50,17 +55,36 @@ public class Logback implements Mlf4j {
 
         // default layout
 //        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"; // your pattern here
-        // logback guid layout
-        LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
+
         // setting Appender
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 //        context.reset();
-//        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
-        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
+
+        // create custom converter to print guid
+        Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
+        if (ruleRegistry == null) {
+            ruleRegistry = new HashMap<String, String>();
+        }
+        context.putObject(CoreConstants.PATTERN_RULE_REGISTRY, ruleRegistry);
+        String conversionWord = "guid";
+        String converterClass = "proto4.LogbackConversion";
+        ruleRegistry.put(conversionWord, converterClass);
+
+        // PatterLayoutEncoder
+        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
+        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %-6guid [%t] %c{1} - %msg%n"; // your pattern here.
+        logEncoder.setPattern(layoutPattern);
+        
+        // LayoutWrappingEncoder - for custom layout
+//        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
+//        LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
+//        if(formatter.isEmpty())  logEncoder.setLayout(layout);
+//        else
         logEncoder.setContext(context);
-//        logEncoder.setPattern(layoutPattern);
-        logEncoder.setLayout(layout);
         logEncoder.start();
+
+
+
         RollingFileAppender logFileAppender=null;
         if(rollingPolicy.equals("time")){
             // timeBasePolicyValue, timeBasePolicyUnit
