@@ -166,6 +166,7 @@ public interface Mlf4j {
     void error(Marker var1, String var2, Object... var3);
 
     void error(Marker var1, String var2, Throwable var3);
+    void fatal(String message);
 
 //    @CheckReturnValue
 //    default LoggingEventBuilder atError() {

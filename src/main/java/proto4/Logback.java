@@ -9,6 +9,7 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.rolling.*;
 import ch.qos.logback.core.util.FileSize;
 import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
@@ -48,14 +49,17 @@ public class Logback implements Mlf4j {
         Level level= Level.valueOf(params.getLevel());
 
         // default layout
-        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"; // your pattern here
-
+//        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"; // your pattern here
+        // logback guid layout
+        LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
         // setting Appender
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 //        context.reset();
-        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
+//        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
+        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
         logEncoder.setContext(context);
-        logEncoder.setPattern(layoutPattern);
+//        logEncoder.setPattern(layoutPattern);
+        logEncoder.setLayout(layout);
         logEncoder.start();
         RollingFileAppender logFileAppender=null;
         if(rollingPolicy.equals("time")){
@@ -331,6 +335,11 @@ public class Logback implements Mlf4j {
     @Override
     public void error(Marker marker, String msg, Throwable t) {
 
+    }
+
+    @Override
+    public void fatal(String message) {
+        logger.error(message);
     }
 
     public String getName() {

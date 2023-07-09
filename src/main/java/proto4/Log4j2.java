@@ -348,6 +348,11 @@ public class Log4j2 implements Mlf4j {
 
     }
 
+    @Override
+    public void fatal(String message) {
+
+    }
+
     public String getName() {
         return null;
     }
