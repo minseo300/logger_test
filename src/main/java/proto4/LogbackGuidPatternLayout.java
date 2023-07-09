@@ -1,6 +1,7 @@
 package proto4;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.LayoutBase;
 
 public class LogbackGuidPatternLayout extends LayoutBase<ILoggingEvent> {
@@ -31,8 +32,8 @@ public class LogbackGuidPatternLayout extends LayoutBase<ILoggingEvent> {
         sbuf.append("guid djfadsklfjsdlkfjaslfkjds ");
         sbuf.append(event.getLoggerName());
         sbuf.append(" - ");
-        sbuf.append(event.getFormattedMessage()+"\n");
-//        sbuf.append(CoreConstants.LINE_SEP);
+        sbuf.append(event.getFormattedMessage());
+        sbuf.append(CoreConstants.LINE_SEPARATOR);
         return sbuf.toString();
     }
 }

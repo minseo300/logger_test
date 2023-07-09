@@ -31,7 +31,7 @@ public class MyLogger {
         return logger;
     }
     public static Logback configureLogback(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params){
-        Logback logger=new Logback(fileName, loggerName, appenderName,additivity,params);
+        Logback logger=new Logback(fileName, loggerName, appenderName,additivity,params,"LogbackTestMessageFormatter");
         return logger;
 
     }

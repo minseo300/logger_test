@@ -1,15 +1,14 @@
 package proto4;
 
 
-import ch.qos.logback.classic.AsyncAppender;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.*;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.CoreConstants;
+import ch.qos.logback.core.Layout;
+import ch.qos.logback.core.LayoutBase;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.joran.action.ConversionRuleAction;
 import ch.qos.logback.core.pattern.ConverterUtil;
@@ -27,8 +26,8 @@ import java.util.Map;
 // org.slf4j.Logger
 public class Logback implements Mlf4j {
     private Logger logger;
-    public Logback(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params){
-        if(params.getAppender().isEmpty()) configureDefault(fileName, loggerName, appenderName,additivity,params);
+    public Logback(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params,String formatter){
+        if(params.getAppender().isEmpty()) configureDefault(fileName, loggerName, appenderName,additivity,params,formatter);
         else if(params.getAppender().equals("console")) configureConsole(fileName, loggerName, appenderName,additivity,params);
     }
 
@@ -40,7 +39,7 @@ public class Logback implements Mlf4j {
      * @param additivity
      * @param params
      */
-    public void configureDefault(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params){
+    public void configureDefault(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params,String formatter){
         String path = params.getPath();
         String timeBasePolicyUnit=params.getTimeBasePolicyUnit();
         String rollingPolicy=params.getRollingPolicy();
@@ -61,25 +60,40 @@ public class Logback implements Mlf4j {
 //        context.reset();
 
         // create custom converter to print guid
-        Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
-        if (ruleRegistry == null) {
-            ruleRegistry = new HashMap<String, String>();
-        }
-        context.putObject(CoreConstants.PATTERN_RULE_REGISTRY, ruleRegistry);
-        String conversionWord = "guid";
-        String converterClass = "proto4.LogbackConversion";
-        ruleRegistry.put(conversionWord, converterClass);
+//        Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
+//        if (ruleRegistry == null) {
+//            ruleRegistry = new HashMap<String, String>();
+//        }
+//        context.putObject(CoreConstants.PATTERN_RULE_REGISTRY, ruleRegistry);
+//        String conversionWord = "guid";
+//        String converterClass = "proto4.LogbackConversion";
+//        ruleRegistry.put(conversionWord, converterClass);
 
         // PatterLayoutEncoder
-        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
-        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %-6guid [%t] %c{1} - %msg%n"; // your pattern here.
-        logEncoder.setPattern(layoutPattern);
-        
-        // LayoutWrappingEncoder - for custom layout
+//        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
+//        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %-6guid [%t] %c{1} - %msg%n"; // your pattern here.
+//        logEncoder.setPattern(layoutPattern);
+//         LayoutWrappingEncoder - for custom layout
 //        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
-//        LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
-//        if(formatter.isEmpty())  logEncoder.setLayout(layout);
-//        else
+        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
+        if(!formatter.isEmpty())  {
+            String test = "proto4."+formatter;
+            System.out.println("formatter test");
+            try {
+                Class<?> testClass = Class.forName(test);
+                Object newObj = testClass.newInstance();
+                System.out.println(newObj);
+//                logEncoder=new LogbackGuidPatternLayout();
+                logEncoder.setLayout((Layout) newObj);
+            } catch (Exception e) {
+
+            }
+        }
+        else{
+            LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
+            logEncoder.setLayout(layout);
+        }
+
         logEncoder.setContext(context);
         logEncoder.start();
 

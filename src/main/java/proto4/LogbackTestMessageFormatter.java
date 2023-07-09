@@ -1,6 +1,7 @@
 package proto4;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.LayoutBase;
 
 public class LogbackTestMessageFormatter extends LayoutBase<ILoggingEvent> {
@@ -27,11 +28,11 @@ public class LogbackTestMessageFormatter extends LayoutBase<ILoggingEvent> {
         sbuf.append(" [");
         sbuf.append(event.getThreadName());
         sbuf.append("] ");
-        sbuf.append("guid djfadsklfjsdlkfjaslfkjds ");
+        sbuf.append("[Prefix] ");
         sbuf.append(event.getLoggerName());
         sbuf.append(" - ");
-        sbuf.append(event.getFormattedMessage()+"\n");
-//        sbuf.append(CoreConstants.LINE_SEP);
+        sbuf.append(event.getFormattedMessage());
+        sbuf.append(CoreConstants.LINE_SEPARATOR);
         return sbuf.toString();
     }
 }

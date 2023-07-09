@@ -7,7 +7,7 @@ public class LogbackConversion extends ClassicConverter {
     @Override
     public String convert(ILoggingEvent event) {
         long guid = 123234243503989L;
-        return "guid: "+Long.toString(guid);
+        return "guid: "+ guid;
     }
 
 }
