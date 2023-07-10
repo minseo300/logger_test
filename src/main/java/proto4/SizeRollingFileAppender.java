@@ -1,5 +1,6 @@
 package proto4;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 
 import java.io.File;
@@ -11,6 +12,9 @@ import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class SizeRollingFileAppender<E> extends RollingFileAppender<E> {
     private static long start = System.currentTimeMillis();
@@ -33,9 +37,6 @@ public class SizeRollingFileAppender<E> extends RollingFileAppender<E> {
 
     @Override
     public void rollover() {
-        System.out.println("rollover "+deleteRollingFilePeriod);
         super.rollover();
     }
-
-
 }

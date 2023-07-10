@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import sun.rmi.runtime.Log;
 
+import java.lang.reflect.Method;
 import java.sql.Time;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +58,7 @@ public class Logback implements Mlf4j {
 
         // setting Appender
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-//        context.reset();
+        context.reset();
 
         // create custom converter to print guid
 //        Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
@@ -68,32 +69,31 @@ public class Logback implements Mlf4j {
 //        String conversionWord = "guid";
 //        String converterClass = "proto4.LogbackConversion";
 //        ruleRegistry.put(conversionWord, converterClass);
-
-        // PatterLayoutEncoder
+//
 //        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
 //        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %-6guid [%t] %c{1} - %msg%n"; // your pattern here.
 //        logEncoder.setPattern(layoutPattern);
-//         LayoutWrappingEncoder - for custom layout
-//        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
+
         LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
+        LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
+
         if(!formatter.isEmpty())  {
             String test = "proto4."+formatter;
-            System.out.println("formatter test");
+            System.out.println("formatter exist");
             try {
                 Class<?> testClass = Class.forName(test);
                 Object newObj = testClass.newInstance();
-                System.out.println(newObj);
-//                logEncoder=new LogbackGuidPatternLayout();
-                logEncoder.setLayout((Layout) newObj);
+                Method method = testClass.getMethod("setting");
+                method.invoke(newObj);
+//                LogbackTestMessageFormatter newObj=new LogbackTestMessageFormatter();
+                logEncoder.setLayout(layout);
             } catch (Exception e) {
 
             }
         }
         else{
-            LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
             logEncoder.setLayout(layout);
         }
-
         logEncoder.setContext(context);
         logEncoder.start();
 

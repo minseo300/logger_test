@@ -140,7 +140,6 @@ public class SizeBasedRollingPolicy extends RollingPolicyBase {
     }
 
     public void rollover() throws RolloverFailure {
-        System.out.println("rolling policy present numberOfFiles: "+numberOfFiles);
         // delete the oldest log file if the number of files is over than limitRollingFileNumber(maxIndex)
         if(maxIndex<1000000){
             System.out.println("limitRollOver");
@@ -155,7 +154,6 @@ public class SizeBasedRollingPolicy extends RollingPolicyBase {
             }
         }
 
-        System.out.println("dfas");
         // rollover active file(fileName.log) by triggering event
         util.rename(getActiveFileName(), fileNamePattern.convertInt(numberOfFiles+1));
         numberOfFiles++;
