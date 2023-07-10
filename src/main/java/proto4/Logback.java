@@ -61,39 +61,44 @@ public class Logback implements Mlf4j {
         context.reset();
 
         // create custom converter to print guid
-//        Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
-//        if (ruleRegistry == null) {
-//            ruleRegistry = new HashMap<String, String>();
-//        }
-//        context.putObject(CoreConstants.PATTERN_RULE_REGISTRY, ruleRegistry);
-//        String conversionWord = "guid";
-//        String converterClass = "proto4.LogbackConversion";
-//        ruleRegistry.put(conversionWord, converterClass);
+        Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
+        if (ruleRegistry == null) {
+            ruleRegistry = new HashMap<String, String>();
+        }
+        context.putObject(CoreConstants.PATTERN_RULE_REGISTRY, ruleRegistry);
+        String conversionWord = "guid";
+        String converterClass = "proto4.LogbackConversion";
+        ruleRegistry.put(conversionWord, converterClass);
+
+        String conversionWord2 = "stack";
+        String converterClass2 = "proto4.StackTraceConversion";
+        ruleRegistry.put(conversionWord2, converterClass2);
+
+
+        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
+        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %-6guid [%t] %c{1} - %msg %-6stack\n"; // your pattern here.
+        logEncoder.setPattern(layoutPattern);
+
+//        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
+//        LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
 //
-//        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
-//        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %-6guid [%t] %c{1} - %msg%n"; // your pattern here.
-//        logEncoder.setPattern(layoutPattern);
-
-        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
-        LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
-
-        if(!formatter.isEmpty())  {
-            String test = "proto4."+formatter;
-            System.out.println("formatter exist");
-            try {
-                Class<?> testClass = Class.forName(test);
-                Object newObj = testClass.newInstance();
-                Method method = testClass.getMethod("setting");
-                method.invoke(newObj);
-//                LogbackTestMessageFormatter newObj=new LogbackTestMessageFormatter();
-                logEncoder.setLayout(layout);
-            } catch (Exception e) {
-
-            }
-        }
-        else{
-            logEncoder.setLayout(layout);
-        }
+//        if(!formatter.isEmpty())  {
+//            String test = "proto4."+formatter;
+//            System.out.println("formatter exist");
+//            try {
+//                Class<?> testClass = Class.forName(test);
+//                Object newObj = testClass.newInstance();
+//                Method method = testClass.getMethod("setting");
+//                method.invoke(newObj);
+////                LogbackTestMessageFormatter newObj=new LogbackTestMessageFormatter();
+//                logEncoder.setLayout(layout);
+//            } catch (Exception e) {
+//
+//            }
+//        }
+//        else{
+//            logEncoder.setLayout(layout);
+//        }
         logEncoder.setContext(context);
         logEncoder.start();
 
