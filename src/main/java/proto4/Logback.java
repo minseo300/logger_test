@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import sun.rmi.runtime.Log;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Time;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import java.util.Map;
 // org.slf4j.Logger
 public class Logback implements Mlf4j {
     private Logger logger;
+    private String messageFormatter=null;
     public Logback(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params,String formatter){
         if(params.getAppender().isEmpty()) configureDefault(fileName, loggerName, appenderName,additivity,params,formatter);
         else if(params.getAppender().equals("console")) configureConsole(fileName, loggerName, appenderName,additivity,params);
@@ -76,13 +78,13 @@ public class Logback implements Mlf4j {
 
 
         PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
-        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %-6guid [%t] %c{1} - %msg %-6stack\n"; // your pattern here.
+        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [GUID-%-6guid] [%t] %c{1} - %msg %-6stack\n"; // your pattern here.
         logEncoder.setPattern(layoutPattern);
 
 //        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
 //        LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
 //
-//        if(!formatter.isEmpty())  {
+        if(!formatter.isEmpty())  {
 //            String test = "proto4."+formatter;
 //            System.out.println("formatter exist");
 //            try {
@@ -95,7 +97,9 @@ public class Logback implements Mlf4j {
 //            } catch (Exception e) {
 //
 //            }
-//        }
+            messageFormatter=formatter;
+            System.out.println("messageFormatter: "+messageFormatter);
+        }
 //        else{
 //            logEncoder.setLayout(layout);
 //        }
@@ -108,6 +112,7 @@ public class Logback implements Mlf4j {
         if(rollingPolicy.equals("time")){
             // timeBasePolicyValue, timeBasePolicyUnit
             TimeBasedRollingPolicy timeBasedRollingPolicy=new TimeBasedRollingPolicy();
+
             if(!deleteRollingFilePeriod.isEmpty()){
                 // deleteRollingFilePeriod - setMaxHistory
                 logFileAppender=new TimeRollingFileAppender(timeBasePolicyValue,timeBasePolicyUnit,path,fileName);
@@ -188,16 +193,48 @@ public class Logback implements Mlf4j {
     public void configureConsole(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params){
 
     }
-
+    public String convertMessageFormatNoArgs(String msg,String formatter) throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        String test = "proto4."+formatter;
+        String formatted="";
+        Class<?> testClass = Class.forName(test);
+        Object newObj = testClass.newInstance();
+        Method method = testClass.getMethod("withNoArgs",String.class);
+        Object ret=method.invoke(newObj,msg);
+        formatted= (String) ret;
+        return formatted;
+    }
+    public String convertMessageFormatArgs(String msg,String formatter,Object... params) throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        String test = "proto4."+formatter;
+        String formatted="";
+        Class<?> testClass = Class.forName(test);
+        Object newObj = testClass.newInstance();
+        Method method = testClass.getDeclaredMethod("withArgs",String.class,Object.class);
+        Object ret=method.invoke(newObj,msg,params);
+        formatted= (String) ret;
+        return formatted;
+    }
     public void info(String msg){
-        this.logger.info(String.valueOf(logger.getClass()));
-        this.logger.info(String.valueOf(logger.getAppender("defaultLogger1Appender").getClass()));
+        if(messageFormatter!=null){
+            try {
+                msg=convertMessageFormatNoArgs(msg,messageFormatter);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (InstantiationException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        }
         this.logger.info(msg);
     }
 
     @Override
     public void info(String format, Object arg) {
-
+        logger.info(format,arg);
     }
 
     @Override
@@ -207,7 +244,22 @@ public class Logback implements Mlf4j {
 
     @Override
     public void info(String format, Object... arguments) {
-
+//        if(messageFormatter!=null){
+//            try {
+//                msg=convertMessageFormatNoArgs(format,messageFormatter);
+//            } catch (ClassNotFoundException e) {
+//                throw new RuntimeException(e);
+//            } catch (InstantiationException e) {
+//                throw new RuntimeException(e);
+//            } catch (IllegalAccessException e) {
+//                throw new RuntimeException(e);
+//            } catch (NoSuchMethodException e) {
+//                throw new RuntimeException(e);
+//            } catch (InvocationTargetException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+        logger.info(format,arguments);
     }
 
     @Override

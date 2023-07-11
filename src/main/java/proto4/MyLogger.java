@@ -32,14 +32,24 @@ public class MyLogger {
     }
     public static Logback configureLogback(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params){
 //        Logback logger=new Logback(fileName, loggerName, appenderName,additivity,params,"LogbackTestMessageFormatter");
-        Logback logger=new Logback(fileName, loggerName, appenderName,additivity,params,"");
+        Logback logger=new Logback(fileName, loggerName, appenderName,additivity,params,"LogbackTestMessageFormatter2");
 
         return logger;
 
     }
     public void info(String msg){
 //        System.out.println("myLogger msg: "+msg);
-        logger.info(msg);
+        try {
+            logger.info(msg);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static String getRotateFileNamePattern (String timeUnit,

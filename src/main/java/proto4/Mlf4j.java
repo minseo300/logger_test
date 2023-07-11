@@ -82,7 +82,7 @@ public interface Mlf4j {
 
     boolean isInfoEnabled();
 
-    void info(String var1);
+    void info(String var1) throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException;
 
     void info(String var1, Object var2);
 
