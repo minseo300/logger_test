@@ -16,7 +16,7 @@ public class Main {
         Logger1 logger1=Logger1.getLogger();
         for(int i=0;i<10000;i++)
         {
-            logger1.info("Rolling file appender example..."+i);
+            logger1.info("Rolling file appender example... {}",Integer.valueOf(i));
             try{
                 Thread.sleep(300);
             }

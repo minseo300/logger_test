@@ -1,7 +1,5 @@
 package proto4;
 
-import org.apache.logging.log4j.Level;
-
 import java.io.IOException;
 
 
@@ -37,19 +35,11 @@ public class MyLogger {
         return logger;
 
     }
-    public void info(String msg){
+    public void info(String msg, Object... args){
 //        System.out.println("myLogger msg: "+msg);
-        try {
-            logger.info(msg);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
+        logger.info(msg,args);
+
+
     }
 
     public static String getRotateFileNamePattern (String timeUnit,
