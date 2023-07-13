@@ -35,6 +35,14 @@ public class MyLogger {
         return logger;
 
     }
+
+    public static Mlf4j configure(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params) throws IOException {
+        Mlf4j ILogger=null;
+        if(params.getFramework().equals("log4j2")) ILogger=configureLog4j2(fileName, loggerName, appenderName,additivity,params);
+        else ILogger=configureLogback(fileName, loggerName, appenderName,additivity,params);
+
+        return ILogger;
+    }
     public void info(String msg, Object... args){
 //        System.out.println("myLogger msg: "+msg);
         logger.info(msg,args);
@@ -69,28 +77,30 @@ public class MyLogger {
     }
 
     // convert deletePeriod string to time int
-    public static int getLogbackMaxHistory (String deleteRollingFilePeriod) {
-        int maxHistory=0;
-        String timeUnit=deleteRollingFilePeriod.substring(deleteRollingFilePeriod.length()-1);
-        String period=deleteRollingFilePeriod.substring(0,deleteRollingFilePeriod.length()-1);
+    public static int getMillisByTimeValueAndUnit (String timeUnit, String timeValue) {
+        int millis=0;
 
         switch (timeUnit) {
             case "d":
-                maxHistory=60*60*24*Integer.parseInt(period);
+            case "day":
+            case "D":
+                millis=60*60*24*Integer.parseInt(timeValue);
                 break;
             case "h":
-                maxHistory=60*60*Integer.parseInt(period);
+                millis=60*60*Integer.parseInt(timeValue);
                 break;
             case "m":
-                maxHistory=60*Integer.parseInt(period);
+                millis=60*Integer.parseInt(timeValue);
                 break;
             case "s":
-                maxHistory=Integer.parseInt(period);
+                millis=Integer.parseInt(timeValue);
                 break;
             default:
-                maxHistory=Integer.parseInt(period);
+                millis=Integer.parseInt(timeValue);
         }
-        return maxHistory;
+        millis*=1000;
+
+        return millis;
     }
 
 }

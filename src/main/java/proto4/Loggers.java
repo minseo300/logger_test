@@ -15,8 +15,9 @@ public class Loggers {
     private String timeBasePolicyValue;
     private String sizeBasePolicyValue;
     private String level;
+    private String framework;
 
-    public Loggers(String loggerType, boolean async, String formatter, String path, String appender, String rollingPolicy, String limitRollingFileNumber, String deleteRollingFilePeriod,
+    public Loggers(String framework,String loggerType, boolean async, String formatter, String path, String appender, String rollingPolicy, String limitRollingFileNumber, String deleteRollingFilePeriod,
                    boolean logDebugEnable, String timeBasePolicyUnit, String timeBasePolicyValue, String sizeBasePolicyValue, String level) {
         this.loggerType = loggerType;
         this.async = async;
@@ -31,6 +32,7 @@ public class Loggers {
         this.timeBasePolicyValue = timeBasePolicyValue;
         this.sizeBasePolicyValue = sizeBasePolicyValue;
         this.level = level;
+        this.framework=framework;
     }
 
     public String getLevel(){
@@ -82,5 +84,6 @@ public class Loggers {
     public String getTimeBasePolicyValue() {
         return timeBasePolicyValue;
     }
+    public String getFramework(){return framework;}
 
 }

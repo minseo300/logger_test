@@ -25,14 +25,15 @@ public class Logger1  extends MyLogger {
     public static void initialize() throws IOException {
         Loggers logger1=MyLoggerManager.getMyLoggerManager().getMyLoggerType().getLoggersList().get(0);
         String frameworkType=MyLoggerManager.getMyLoggerManager().getFrameworkType();
-        Logger1 logger=null;
-        if(frameworkType.equals("log4j2")){
-            logger = new Logger1(configureLog4j2(APPLICATION_NAME,APPLICATION_LOGGER_NAME,"defaultLogger1Appender",true,logger1), APPLICATION_LOGGER_NAME);
+        Logger1 logger=new Logger1(configure(APPLICATION_NAME,APPLICATION_LOGGER_NAME,"defaultLogger1Appender",true,logger1),APPLICATION_LOGGER_NAME);
 
-        }
-        else if(frameworkType.equals("logback")){
-            logger=new Logger1(configureLogback(APPLICATION_NAME,APPLICATION_LOGGER_NAME,"defaultLogger1Appender",true,logger1), APPLICATION_LOGGER_NAME);
-        }
+//        if(frameworkType.equals("log4j2")){
+//            logger = new Logger1(configureLog4j2(APPLICATION_NAME,APPLICATION_LOGGER_NAME,"defaultLogger1Appender",true,logger1), APPLICATION_LOGGER_NAME);
+//
+//        }
+//        else if(frameworkType.equals("logback")){
+//            logger=new Logger1(configureLogback(APPLICATION_NAME,APPLICATION_LOGGER_NAME,"defaultLogger1Appender",true,logger1), APPLICATION_LOGGER_NAME);
+//        }
 
         MyLoggerManager manager= MyLoggerManager.getMyLoggerManager();
         manager.addLogger(APPLICATION_LOGGER_NAME,logger);

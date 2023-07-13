@@ -6,7 +6,7 @@ public class LogbackTestMessageFormatter2 extends LogbackAbstractMessageFactory{
     //실제 출력할 메시지를 설정하는 메서드
     public String withNoArgs(String message) {
         // TODO Auto-generated method stub
-        return super.withNoArgs("[prefix2] "+message+" [postfix2]");
+        return super.withNoArgs("[prefix3] "+message+" [postfix3]");
     }
 
     public String withArgs(String message, Object... params) {

@@ -33,6 +33,7 @@ public class Logback implements Mlf4j {
         if(params.getAppender().isEmpty()) configureDefault(fileName, loggerName, appenderName,additivity,params,formatter);
         else if(params.getAppender().equals("console")) configureConsole(fileName, loggerName, appenderName,additivity,params);
     }
+    private LogbackFactory logbackFactory=new LogbackFactory();
 
     /**
      * Configuring Default Appender; RollingFileAppender
@@ -61,7 +62,6 @@ public class Logback implements Mlf4j {
         // setting Appender
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
         context.reset();
-
         // create custom converter to print guid
         Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
         if (ruleRegistry == null) {
@@ -77,93 +77,14 @@ public class Logback implements Mlf4j {
         ruleRegistry.put(conversionWord2, converterClass2);
 
 
-        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
-        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [GUID-%-6guid] [%t] %c{1} - %msg %-6stack\n"; // your pattern here.
-        logEncoder.setPattern(layoutPattern);
-
-//        LayoutWrappingEncoder logEncoder=new LayoutWrappingEncoder();
-//        LogbackGuidPatternLayout layout=new LogbackGuidPatternLayout();
 //
         if(!formatter.isEmpty())  {
-//            String test = "proto4."+formatter;
-//            System.out.println("formatter exist");
-//            try {
-//                Class<?> testClass = Class.forName(test);
-//                Object newObj = testClass.newInstance();
-//                Method method = testClass.getMethod("setting");
-//                method.invoke(newObj);
-////                LogbackTestMessageFormatter newObj=new LogbackTestMessageFormatter();
-//                logEncoder.setLayout(layout);
-//            } catch (Exception e) {
-//
-//            }
             messageFormatter=formatter;
             System.out.println("messageFormatter: "+messageFormatter);
         }
-//        else{
-//            logEncoder.setLayout(layout);
-//        }
-        logEncoder.setContext(context);
-        logEncoder.start();
 
 
-
-        RollingFileAppender logFileAppender=null;
-        if(rollingPolicy.equals("time")){
-            // timeBasePolicyValue, timeBasePolicyUnit
-            TimeBasedRollingPolicy timeBasedRollingPolicy=new TimeBasedRollingPolicy();
-
-            if(!deleteRollingFilePeriod.isEmpty()){
-                // deleteRollingFilePeriod - setMaxHistory
-                logFileAppender=new TimeRollingFileAppender(timeBasePolicyValue,timeBasePolicyUnit,path,fileName);
-                timeBasedRollingPolicy.setMaxHistory(MyLogger.getLogbackMaxHistory(deleteRollingFilePeriod));
-            }
-            else{
-                // limitRollingFileNumber
-                logFileAppender=new TimeRollingFileAppender(timeBasePolicyValue,timeBasePolicyUnit,limitRollingFileNumber,path,fileName);
-            }
-            timeBasedRollingPolicy.setContext(context);
-            timeBasedRollingPolicy.setParent(logFileAppender);
-            timeBasedRollingPolicy.setFileNamePattern(rotatedFileName);
-            timeBasedRollingPolicy.start();
-
-            logFileAppender.setRollingPolicy(timeBasedRollingPolicy);
-        }
-        else if(rollingPolicy.equals("size")){
-            // sizeBasePolicyValue
-            SizeBasedRollingPolicy sizeBasedRollingPolicy=new SizeBasedRollingPolicy();
-            SizeBasedTriggeringPolicy sizeBasedTriggeringPolicy=new SizeBasedTriggeringPolicy();
-            if(!deleteRollingFilePeriod.isEmpty()){
-                // to keep alive created log files while deleteRollingFilePeriod - setMaxHistory
-                logFileAppender=new SizeRollingFileAppender(path,fileName,deleteRollingFilePeriod);
-                sizeBasedRollingPolicy.setDeleteRollingFilePeriod(deleteRollingFilePeriod);
-
-            }
-            else{
-                // limitRollingFileNumber
-                logFileAppender=new SizeRollingFileAppender(path,fileName);
-                sizeBasedRollingPolicy.setMaxIndex(Integer.parseInt(limitRollingFileNumber));
-            }
-
-            logFileAppender.setFile(path+fileName+".log");
-            logFileAppender.setContext(context);
-
-            sizeBasedRollingPolicy.setContext(context);
-            sizeBasedRollingPolicy.setMinIndex(1);
-            sizeBasedRollingPolicy.setParent(logFileAppender);
-            sizeBasedRollingPolicy.setFileNamePattern(rotatedFileName);
-            sizeBasedRollingPolicy.start();
-
-            sizeBasedTriggeringPolicy.setContext(context);
-            sizeBasedTriggeringPolicy.setMaxFileSize(FileSize.valueOf(sizeBasePolicyValue));
-            sizeBasedTriggeringPolicy.start();
-
-            logFileAppender.setRollingPolicy(sizeBasedRollingPolicy);
-            logFileAppender.setTriggeringPolicy(sizeBasedTriggeringPolicy);
-
-            logFileAppender.start();
-
-        }
+        RollingFileAppender logFileAppender=logbackFactory.create(fileName,loggerName,appenderName,additivity,params,formatter,context);
 
         if(async){
             AsyncAppender asyncAppender=new AsyncAppender();
@@ -173,13 +94,6 @@ public class Logback implements Mlf4j {
             asyncAppender.start();
         }
 
-//        logFileAppender.rollover();
-        logFileAppender.setContext(context);
-        logFileAppender.setName(appenderName);
-        logFileAppender.setEncoder(logEncoder);
-        logFileAppender.setAppend(true);
-        logFileAppender.setFile(path+fileName+".log");
-        logFileAppender.start();
 
 
         this.logger=(Logger) LoggerFactory.getLogger(loggerName);
