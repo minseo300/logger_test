@@ -94,8 +94,6 @@ public class Logback implements Mlf4j {
             asyncAppender.start();
         }
 
-
-
         this.logger=(Logger) LoggerFactory.getLogger(loggerName);
         this.logger.setAdditive(additivity);
         this.logger.setLevel(level);

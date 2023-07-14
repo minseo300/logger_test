@@ -92,9 +92,7 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
     private List<File> getRollOveredFiles(){
         java.io.File dir=new java.io.File(path);
         String rollOveredFileNamePrefix=getActiveFileName().substring(getActiveFileName().lastIndexOf("/")+1,getActiveFileName().lastIndexOf(".log"))+"-";
-        System.out.println("ggggg");
         FilenameFilter filter= (dir1, name) -> name.startsWith(rollOveredFileNamePrefix)&&name.endsWith(".log");
-//        FilenameFilter filter= (dir1, name) -> name.startsWith(rollOveredFileNamePrefix)&&name.endsWith(".log");
         java.io.File[] rollOveredFileList= dir.listFiles(filter);
         Arrays.sort(rollOveredFileList, new Comparator<java.io.File>() {
             @Override

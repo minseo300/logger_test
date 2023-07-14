@@ -32,17 +32,21 @@ public class LogbackFactory {
         RollingPolicyBase rollingPolicyBase=createRollingPolicy(rollingPolicy,context,rotatedFileName,deleteRollingFilePeriod,limitRollingFileNumber);
         TriggeringPolicyBase triggeringPolicyBase=createTriggeringPolicy(rollingPolicy,context,sizeBasePolicyValue,timeBasePolicyValue,timeBasePolicyUnit);
 
-        rollingPolicyBase.setParent(rollingFileAppender);
-        rollingPolicyBase.start();
 
+        rollingPolicyBase.setParent(rollingFileAppender);
         rollingFileAppender.setContext(context);
+        rollingFileAppender.setFile(path+fileName+".log");
         rollingFileAppender.setRollingPolicy(rollingPolicyBase);
         rollingFileAppender.setTriggeringPolicy(triggeringPolicyBase);
         rollingFileAppender.setEncoder(layoutEncoder);
         rollingFileAppender.setAppend(true);
-        rollingFileAppender.setFile(path+fileName+".log");
         rollingFileAppender.setName(appenderName);
+
+        triggeringPolicyBase.start();
+        rollingPolicyBase.start();
         rollingFileAppender.start();
+
+//        rollingFileAppender.start();
 
         return rollingFileAppender;
     }
@@ -57,7 +61,6 @@ public class LogbackFactory {
             ((LogbackSizeBasedTriggeringPolicy) triggeringPolicyBase).setMaxFileSize(FileSize.valueOf(sizeBasePolicyValue));
         }
         triggeringPolicyBase.setContext(context);
-        triggeringPolicyBase.start();
 
         return triggeringPolicyBase;
     }
