@@ -27,26 +27,30 @@ public class LogbackFactory {
         String limitRollingFileNumber=params.getLimitRollingFileNumber();
 
 
-        RollingFileAppender rollingFileAppender=new RollingFileAppender();
         PatternLayoutEncoder layoutEncoder=createLayoutEncoder(context);
-        RollingPolicyBase rollingPolicyBase=createRollingPolicy(rollingPolicy,context,rotatedFileName,deleteRollingFilePeriod,limitRollingFileNumber);
-        TriggeringPolicyBase triggeringPolicyBase=createTriggeringPolicy(rollingPolicy,context,sizeBasePolicyValue,timeBasePolicyValue,timeBasePolicyUnit);
 
-
-        rollingPolicyBase.setParent(rollingFileAppender);
+        RollingFileAppender rollingFileAppender=new RollingFileAppender();
         rollingFileAppender.setContext(context);
         rollingFileAppender.setFile(path+fileName+".log");
-        rollingFileAppender.setRollingPolicy(rollingPolicyBase);
-        rollingFileAppender.setTriggeringPolicy(triggeringPolicyBase);
         rollingFileAppender.setEncoder(layoutEncoder);
         rollingFileAppender.setAppend(true);
         rollingFileAppender.setName(appenderName);
 
-        triggeringPolicyBase.start();
+        RollingPolicyBase rollingPolicyBase=createRollingPolicy(rollingPolicy,context,rotatedFileName,deleteRollingFilePeriod,limitRollingFileNumber);
+        rollingPolicyBase.setParent(rollingFileAppender);
+        rollingPolicyBase.setContext(context);
+        rollingPolicyBase.setFileNamePattern(rotatedFileName);
         rollingPolicyBase.start();
-        rollingFileAppender.start();
 
-//        rollingFileAppender.start();
+        TriggeringPolicyBase triggeringPolicyBase=createTriggeringPolicy(rollingPolicy,context,sizeBasePolicyValue,timeBasePolicyValue,timeBasePolicyUnit);
+        triggeringPolicyBase.setContext(context);
+        triggeringPolicyBase.start();
+
+
+
+        rollingFileAppender.setTriggeringPolicy(triggeringPolicyBase);
+        rollingFileAppender.setRollingPolicy(rollingPolicyBase);
+        rollingFileAppender.start();
 
         return rollingFileAppender;
     }
@@ -60,7 +64,6 @@ public class LogbackFactory {
             triggeringPolicyBase=new LogbackSizeBasedTriggeringPolicy();
             ((LogbackSizeBasedTriggeringPolicy) triggeringPolicyBase).setMaxFileSize(FileSize.valueOf(sizeBasePolicyValue));
         }
-        triggeringPolicyBase.setContext(context);
 
         return triggeringPolicyBase;
     }
@@ -72,8 +75,7 @@ public class LogbackFactory {
         else{
             rollingPolicyBase=new LogbackSizeBasedRollingPolicy(deleteByPeriod,deleteByFileNumber);
         }
-        rollingPolicyBase.setContext(context);
-        rollingPolicyBase.setFileNamePattern(fileNamePattern);
+
 
         return rollingPolicyBase;
     }

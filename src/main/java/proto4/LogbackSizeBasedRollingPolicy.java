@@ -1,5 +1,6 @@
 package proto4;
 
+import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.rolling.RollingPolicyBase;
 import ch.qos.logback.core.rolling.RolloverFailure;
 import ch.qos.logback.core.rolling.helper.FileNamePattern;
@@ -15,16 +16,34 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import static ch.qos.logback.core.CoreConstants.CODES_URL;
+
 public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
     private int deleteByPeriodValue =-1;
     private int deleteByFileNumberValue;
     private String path;
     String fileNamePatternStr;
     static FileNamePattern fileNamePattern;
-    private int minIndex;
+    private int minIndex=1;
     private int numberOfFiles=0;
     static RenameUtil renameUtil = new RenameUtil();
+    static final String FNP_NOT_SET = "The \"FileNamePattern\" property must be set before using FixedWindowRollingPolicy. ";
+    static final String PRUDENT_MODE_UNSUPPORTED = "See also "+CODES_URL+"#tbr_fnp_prudent_unsupported";
+    static final String SEE_PARENT_FN_NOT_SET = "Please refer to "+CODES_URL+"#fwrp_parentFileName_not_set";
 
+
+    public void start(){
+        renameUtil.setContext(this.context);
+        if (fileNamePatternStr != null) {
+            fileNamePattern = new FileNamePattern(fileNamePatternStr, this.context);
+//            determineCompressionMode();
+        } else {
+            addError(FNP_NOT_SET);
+            addError(CoreConstants.SEE_FNP_NOT_SET);
+            throw new IllegalStateException(FNP_NOT_SET + CoreConstants.SEE_FNP_NOT_SET);
+        }
+        super.start();
+    }
     public void setFileNamePattern(String fnp){
         this.fileNamePatternStr=fnp;
         this.setPath();
@@ -67,27 +86,25 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
         long creationTime;
         for(File f:rollOveredFileList){
             creationTime=((FileTime) Files.getAttribute(f.toPath(),"creationTime")).toMillis();
-            if((deleteByPeriodValue+creationTime)> currentTime){
+            if((currentTime-creationTime)>= deleteByPeriodValue){
                 Files.deleteIfExists(Paths.get(f.getPath()));
             }
             else break;
         }
 
     }
+
     private void deleteFileByFileNumber() throws IOException {
-        if(deleteByFileNumberValue<=numberOfFiles){
-            List<File> rollOveredFileList=getRollOveredFiles();
-            if(rollOveredFileList.size()>this.deleteByFileNumberValue){
-                Files.deleteIfExists(Paths.get(rollOveredFileList.get(0).getPath()));
-                numberOfFiles--;
-            }
+        List<File> rollOveredFileList=getRollOveredFiles();
+        if(rollOveredFileList.size()>=this.deleteByFileNumberValue){
+            Files.deleteIfExists(Paths.get(rollOveredFileList.get(0).getPath()));
         }
 
     }
 
     @Override
     public String getActiveFileName() {
-        return null;
+        return getParentsRawFileProperty();
     }
     private List<File> getRollOveredFiles(){
         java.io.File dir=new java.io.File(path);

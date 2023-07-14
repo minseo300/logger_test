@@ -36,19 +36,7 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
     boolean cleanHistoryOnStart = false;
     Future<?> cleanUpFuture;
 
-    private void setArchiveRemover(){
-        DateTokenConverter<Object> dtc = fileNamePattern.getPrimaryDateTokenConverter();
-        if (dtc == null) {
-            throw new IllegalStateException("FileNamePattern [" + fileNamePattern.getPattern() + "] does not contain a valid DateToken");
-        }
 
-        if (dtc.getTimeZone() != null) {
-            rc = new RollingCalendar(dtc.getDatePattern(), dtc.getTimeZone(), Locale.getDefault());
-        } else {
-            rc = new RollingCalendar(dtc.getDatePattern());
-        }
-        archiveRemover=new TimeBasedArchiveRemover(fileNamePattern,rc);
-    }
     public LogbackTimeBasedRollingPolicy(String deleteByPeriodValue, String deleteByFileNumberValue){
         if(deleteByPeriodValue!=null){
             String timeUnit=deleteByPeriodValue.substring(deleteByPeriodValue.length()-1);
