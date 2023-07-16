@@ -88,7 +88,7 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
             throw new RuntimeException(e);
         }
         renameUtil.rename(getActiveFileName(), fileNamePattern.convertInt(maxIndex++));
-        updateIndexToFile();
+//        updateIndexToFile();
         numberOfFiles++;
     }
     private void deleteFilesByPeriod() throws IOException {
@@ -113,30 +113,56 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
             minIndex++;
         }
     }
-    private void updateIndexToFile() {
-        try{
-            Files.deleteIfExists(Paths.get(path + "/index.txt"));
-            Files.write(Paths.get(path + "/index.txt"),(minIndex+"\n"+maxIndex).getBytes(),StandardOpenOption.CREATE);
-        }catch (Exception e){
-            System.out.println(e);
-        }
-    }
-    private void setIndex() throws IOException {
-        Path indexFilePath = Paths.get(path+"/index.txt");
-        File indexFile=new File(indexFilePath.toString());
 
-        if(indexFile.exists()){
-            List<String> lines = Files.readAllLines(indexFilePath);
-            System.out.println(lines);
-            this.minIndex=Integer.parseInt(lines.get(0));
-            this.maxIndex=Integer.parseInt(lines.get(1));
+//    private void updateIndexToFile() {
+//        try{
+//            Files.deleteIfExists(Paths.get(path + "/index.txt"));
+//            Files.write(Paths.get(path + "/index.txt"),(minIndex+"\n"+maxIndex).getBytes(),StandardOpenOption.CREATE);
+//        }catch (Exception e){
+//            System.out.println(e);
+//        }
+//    }
+
+    private void setIndex() throws IOException {
+        ///////// V1 /////////////////////////////////////////////////////////////////
+        // - minIndex와 maxIndex를 index 파일을 읽어 setting
+//        Path indexFilePath = Paths.get(path+"/index.txt");
+//        File indexFile=new File(indexFilePath.toString());
+//
+//        if(indexFile.exists()){
+//            List<String> lines = Files.readAllLines(indexFilePath);
+//            System.out.println(lines);
+//            this.minIndex=Integer.parseInt(lines.get(0));
+//            this.maxIndex=Integer.parseInt(lines.get(1));
+//        }
+//        else{
+//            indexFilePath = Files.createFile(indexFilePath);
+//            Files.write(indexFilePath, "1\n1".getBytes(),StandardOpenOption.CREATE);
+//            this.minIndex=1;
+//            this.maxIndex=1;
+//        }
+        //////////////////////////////////////////////////////////////////////////////
+
+        ///////// V2 /////////////////////////////////////////////////////////////////
+        // - directory 내에 있는 모든 파일 중 인덱스가 제일 작은 숫자와 제일 큰 숫자를 읽어 setting -> directory 내의 모든 파일 이름을 순회
+        File dir=new File(path);
+        String rollOveredFileNamePrefix=getActiveFileName().substring(getActiveFileName().lastIndexOf("/")+1,getActiveFileName().lastIndexOf(".log"))+"-";
+        FilenameFilter filter= (dir1, name) -> name.startsWith(rollOveredFileNamePrefix)&&name.endsWith(".log");
+        File[] rollOveredFileList= dir.listFiles(filter);
+        int minIndex=1,maxIndex=1;
+        int index;
+        for(File f: rollOveredFileList){
+            int s=f.getName().lastIndexOf("-")+1;
+            int e=f.getName().lastIndexOf(".log");
+            index= Integer.parseInt(f.getName().substring(s,e));
+            System.out.println("index: "+index);
+            if(minIndex==1||minIndex>index) minIndex=index;
+            if(maxIndex==1||maxIndex<index) maxIndex=index;
         }
-        else{
-            indexFilePath = Files.createFile(indexFilePath);
-            Files.write(indexFilePath, "1\n1".getBytes(),StandardOpenOption.CREATE);
-            this.minIndex=1;
-            this.maxIndex=1;
-        }
+        //////////////////////////////////////////////////////////////////////////////
+//        System.out.println("minIndex: "+minIndex+" maxIndex: "+maxIndex);
+        this.minIndex=minIndex;
+        this.maxIndex=maxIndex;
     }
     @Override
     public String getActiveFileName() {
