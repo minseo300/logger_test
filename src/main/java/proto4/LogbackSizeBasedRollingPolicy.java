@@ -10,11 +10,14 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static ch.qos.logback.core.CoreConstants.CODES_URL;
 
@@ -25,7 +28,9 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
     String fileNamePatternStr;
     static FileNamePattern fileNamePattern;
     private int minIndex=1;
+    private int maxIndex=1;
     private int numberOfFiles=0;
+
     static RenameUtil renameUtil = new RenameUtil();
     static final String FNP_NOT_SET = "The \"FileNamePattern\" property must be set before using FixedWindowRollingPolicy. ";
     static final String PRUDENT_MODE_UNSUPPORTED = "See also "+CODES_URL+"#tbr_fnp_prudent_unsupported";
@@ -48,11 +53,15 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
         this.fileNamePatternStr=fnp;
         this.setPath();
     }
-    //    public void setMaxHistory()
     public void setPath(){
         int lastIndex=fileNamePatternStr.lastIndexOf("/");
         this.path=fileNamePatternStr.substring(0,lastIndex+1);
         System.out.println("path: "+path);
+        try {
+            setIndex();
+        }catch (Exception e){
+            System.out.println(e);
+        }
     }
 
     public LogbackSizeBasedRollingPolicy(String deleteByPeriodValue, String deleteByFileNumberValue){
@@ -64,6 +73,7 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
         else{
             this.deleteByFileNumberValue = Integer.parseInt(deleteByFileNumberValue)-1;
         }
+
     }
     @Override
     public void rollover() throws RolloverFailure {
@@ -77,7 +87,8 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
         }catch (Exception e){
             throw new RuntimeException(e);
         }
-        renameUtil.rename(getActiveFileName(), fileNamePattern.convertInt(minIndex++));
+        renameUtil.rename(getActiveFileName(), fileNamePattern.convertInt(maxIndex++));
+        updateIndexToFile();
         numberOfFiles++;
     }
     private void deleteFilesByPeriod() throws IOException {
@@ -88,32 +99,57 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
             creationTime=((FileTime) Files.getAttribute(f.toPath(),"creationTime")).toMillis();
             if((currentTime-creationTime)>= deleteByPeriodValue){
                 Files.deleteIfExists(Paths.get(f.getPath()));
+                minIndex= Integer.parseInt(f.getName().substring(f.getName().lastIndexOf("-")));
+                System.out.println(minIndex);
             }
             else break;
         }
-
     }
 
     private void deleteFileByFileNumber() throws IOException {
         List<File> rollOveredFileList=getRollOveredFiles();
         if(rollOveredFileList.size()>=this.deleteByFileNumberValue){
             Files.deleteIfExists(Paths.get(rollOveredFileList.get(0).getPath()));
+            minIndex++;
         }
-
     }
+    private void updateIndexToFile() {
+        try{
+            Files.deleteIfExists(Paths.get(path + "/index.txt"));
+            Files.write(Paths.get(path + "/index.txt"),(minIndex+"\n"+maxIndex).getBytes(),StandardOpenOption.CREATE);
+        }catch (Exception e){
+            System.out.println(e);
+        }
+    }
+    private void setIndex() throws IOException {
+        Path indexFilePath = Paths.get(path+"/index.txt");
+        File indexFile=new File(indexFilePath.toString());
 
+        if(indexFile.exists()){
+            List<String> lines = Files.readAllLines(indexFilePath);
+            System.out.println(lines);
+            this.minIndex=Integer.parseInt(lines.get(0));
+            this.maxIndex=Integer.parseInt(lines.get(1));
+        }
+        else{
+            indexFilePath = Files.createFile(indexFilePath);
+            Files.write(indexFilePath, "1\n1".getBytes(),StandardOpenOption.CREATE);
+            this.minIndex=1;
+            this.maxIndex=1;
+        }
+    }
     @Override
     public String getActiveFileName() {
         return getParentsRawFileProperty();
     }
     private List<File> getRollOveredFiles(){
-        java.io.File dir=new java.io.File(path);
+        File dir=new File(path);
         String rollOveredFileNamePrefix=getActiveFileName().substring(getActiveFileName().lastIndexOf("/")+1,getActiveFileName().lastIndexOf(".log"))+"-";
         FilenameFilter filter= (dir1, name) -> name.startsWith(rollOveredFileNamePrefix)&&name.endsWith(".log");
-        java.io.File[] rollOveredFileList= dir.listFiles(filter);
+        File[] rollOveredFileList= dir.listFiles(filter);
         Arrays.sort(rollOveredFileList, new Comparator<java.io.File>() {
             @Override
-            public int compare(java.io.File o1, java.io.File o2) {
+            public int compare(File o1, File o2) {
                 int n1=extractNumber(o1.getName());
                 int n2=extractNumber(o2.getName());
                 return n1-n2;
@@ -127,7 +163,7 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
                 return i;
             }
         });
-        java.util.List<java.io.File> result=Arrays.asList(rollOveredFileList);
+        List<File> result=Arrays.asList(rollOveredFileList);
 
         return result;
     }
