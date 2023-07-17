@@ -44,15 +44,6 @@ public class Logback implements Mlf4j {
      * @param params
      */
     public void configureDefault(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params,String formatter){
-        String path = params.getPath();
-        String timeBasePolicyUnit=params.getTimeBasePolicyUnit();
-        String rollingPolicy=params.getRollingPolicy();
-        String rotatedFileName = path + fileName + MyLogger.getRotateFileNamePattern(timeBasePolicyUnit, rollingPolicy)
-                + ".log";
-        String timeBasePolicyValue=params.getTimeBasePolicyValue();
-        String deleteRollingFilePeriod=params.getDeleteRollingFilePeriod();
-        String sizeBasePolicyValue=params.getSizeBasePolicyValue();
-        String limitRollingFileNumber=params.getLimitRollingFileNumber();
         Boolean async=params.getAsync();
         Level level= Level.valueOf(params.getLevel());
 
@@ -61,21 +52,7 @@ public class Logback implements Mlf4j {
 
         // setting Appender
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.reset();
-        // create custom converter to print guid
-        Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
-        if (ruleRegistry == null) {
-            ruleRegistry = new HashMap<String, String>();
-        }
-        context.putObject(CoreConstants.PATTERN_RULE_REGISTRY, ruleRegistry);
-        String conversionWord = "guid";
-        String converterClass = "proto4.LogbackConversion";
-        ruleRegistry.put(conversionWord, converterClass);
-
-        String conversionWord2 = "stack";
-        String converterClass2 = "proto4.StackTraceConversion";
-        ruleRegistry.put(conversionWord2, converterClass2);
-
+//        context.reset();
 
 //
         if(!formatter.isEmpty())  {
@@ -86,21 +63,19 @@ public class Logback implements Mlf4j {
 
         RollingFileAppender logFileAppender=logbackFactory.create(fileName,loggerName,appenderName,additivity,params,formatter,context);
 
-        if(async){
-            AsyncAppender asyncAppender=new AsyncAppender();
-            asyncAppender.setContext(context);
-            asyncAppender.addAppender(logFileAppender);
-            asyncAppender.setQueueSize(100);
-            asyncAppender.start();
-        }
-
         this.logger=(Logger) LoggerFactory.getLogger(loggerName);
         this.logger.setAdditive(additivity);
         this.logger.setLevel(level);
         this.logger.addAppender(logFileAppender);
-//        this.logger.addAppender(customRollingFileAppender);
 
-
+        AsyncAppender asyncAppender=new AsyncAppender();
+        if(async){
+            asyncAppender.setContext(context);
+            asyncAppender.addAppender(logFileAppender);
+            asyncAppender.setQueueSize(100);
+            asyncAppender.start();
+            this.logger.addAppender(asyncAppender);
+        }
     }
     public void configureConsole(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params){
 

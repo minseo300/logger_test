@@ -14,7 +14,7 @@ public class Main {
         loggerManager.init();
 
         Logger1 logger1=Logger1.getLogger();
-        for(int i=0;i<10000;i++)
+        for(int i=0;i<200;i++)
         {
             logger1.info("Rolling file appender example... {}",Integer.valueOf(i));
             try{

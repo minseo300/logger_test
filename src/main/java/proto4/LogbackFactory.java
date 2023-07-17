@@ -26,9 +26,10 @@ public class LogbackFactory {
         String sizeBasePolicyValue=params.getSizeBasePolicyValue();
         String limitRollingFileNumber=params.getLimitRollingFileNumber();
 
-
+        // create PatternLayoutEncoder
         PatternLayoutEncoder layoutEncoder=createLayoutEncoder(context);
 
+        // create RollingFileAppender
         RollingFileAppender rollingFileAppender=new RollingFileAppender();
         rollingFileAppender.setContext(context);
         rollingFileAppender.setFile(path+fileName+".log");
@@ -36,18 +37,19 @@ public class LogbackFactory {
         rollingFileAppender.setAppend(true);
         rollingFileAppender.setName(appenderName);
 
+        // create RollingPolicy
         RollingPolicyBase rollingPolicyBase=createRollingPolicy(rollingPolicy,context,rotatedFileName,deleteRollingFilePeriod,limitRollingFileNumber);
         rollingPolicyBase.setParent(rollingFileAppender);
         rollingPolicyBase.setContext(context);
         rollingPolicyBase.setFileNamePattern(rotatedFileName);
         rollingPolicyBase.start();
 
+        // create TriggeringPolicy
         TriggeringPolicyBase triggeringPolicyBase=createTriggeringPolicy(rollingPolicy,context,sizeBasePolicyValue,timeBasePolicyValue,timeBasePolicyUnit);
         triggeringPolicyBase.setContext(context);
         triggeringPolicyBase.start();
 
-
-
+        // starting rollingFileAppender after setting rollingPolicy and triggeringPolicy to appender
         rollingFileAppender.setTriggeringPolicy(triggeringPolicyBase);
         rollingFileAppender.setRollingPolicy(rollingPolicyBase);
         rollingFileAppender.start();

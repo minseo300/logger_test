@@ -1,5 +1,6 @@
 package proto4;
 
+import ch.qos.logback.classic.AsyncAppender;
 import ch.qos.logback.core.rolling.TriggeringPolicyBase;
 import ch.qos.logback.core.util.FileSize;
 
