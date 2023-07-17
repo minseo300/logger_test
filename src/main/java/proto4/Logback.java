@@ -66,7 +66,6 @@ public class Logback implements Mlf4j {
         this.logger=(Logger) LoggerFactory.getLogger(loggerName);
         this.logger.setAdditive(additivity);
         this.logger.setLevel(level);
-        this.logger.addAppender(logFileAppender);
 
         AsyncAppender asyncAppender=new AsyncAppender();
         if(async){
@@ -75,6 +74,9 @@ public class Logback implements Mlf4j {
             asyncAppender.setQueueSize(100);
             asyncAppender.start();
             this.logger.addAppender(asyncAppender);
+        }
+        else{
+            this.logger.addAppender(logFileAppender);
         }
     }
     public void configureConsole(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params){
