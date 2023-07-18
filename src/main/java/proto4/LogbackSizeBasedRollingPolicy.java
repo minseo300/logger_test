@@ -84,17 +84,17 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
 //        updateIndexToFile();
         numberOfFiles++;
         //////////////////////////////////////////////////////////////
-//        deleteAsynchronously(deleteByPeriodValue,deleteByFileNumberValue);
-        try{
-            if(deleteByPeriodValue!=-1) {
-                deleteFilesByPeriod();
-            }
-            else {
-                deleteFileByFileNumber();
-            }
-        } catch (IOException e){
-            throw new RuntimeException(e);
-        }
+        deleteAsynchronously(deleteByPeriodValue,deleteByFileNumberValue);
+//        try{
+//            if(deleteByPeriodValue!=-1) {
+//                deleteFilesByPeriod();
+//            }
+//            else {
+//                deleteFileByFileNumber();
+//            }
+//        } catch (IOException e){
+//            throw new RuntimeException(e);
+//        }
 
     }
     private void deleteAsynchronously(int deleteByPeriodValue, int deleteByFileNumberValue){
@@ -205,6 +205,7 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
 
         ///////// V2 /////////////////////////////////////////////////////////////////
         // - directory 내에 있는 모든 파일 중 인덱스가 제일 작은 숫자와 제일 큰 숫자를 읽어 setting -> directory 내의 모든 파일 이름을 순회
+        long start=System.currentTimeMillis();
         File dir=new File(path);
         String rollOveredFileNamePrefix=getActiveFileName().substring(getActiveFileName().lastIndexOf("/")+1,getActiveFileName().lastIndexOf(".log"))+"-";
         FilenameFilter filter= (dir1, name) -> name.startsWith(rollOveredFileNamePrefix)&&name.endsWith(".log");
@@ -219,10 +220,11 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
             if(minIndex==1||minIndex>index) minIndex=index;
             if(maxIndex==1||maxIndex<index) maxIndex=index;
         }
+        System.out.println("[TIME CHECK] "+(System.currentTimeMillis()-start));
         //////////////////////////////////////////////////////////////////////////////
 //        System.out.println("minIndex: "+minIndex+" maxIndex: "+maxIndex);
         this.minIndex=minIndex;
-        this.maxIndex=maxIndex;
+        this.maxIndex=maxIndex==1?1:maxIndex+1;
     }
     @Override
     public String getActiveFileName() {

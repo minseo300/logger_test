@@ -14,11 +14,11 @@ public class Main {
         loggerManager.init();
 
         Logger1 logger1=Logger1.getLogger();
-        for(int i=0;i<200;i++)
+        for(int i=0;i<100;i++)
         {
             logger1.info("Rolling file appender example... {}",Integer.valueOf(i));
             try{
-                Thread.sleep(300);
+                Thread.sleep(100);
             }
             catch (InterruptedException e) {
                 e.printStackTrace();

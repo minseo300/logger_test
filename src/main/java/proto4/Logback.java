@@ -103,21 +103,21 @@ public class Logback implements Mlf4j {
         return formatted;
     }
     public void info(String msg){
-        if(messageFormatter!=null){
-            try {
-                msg=convertMessageFormatNoArgs(msg,messageFormatter);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        }
+//        if(messageFormatter!=null){
+//            try {
+//                msg=convertMessageFormatNoArgs(msg,messageFormatter);
+//            } catch (ClassNotFoundException e) {
+//                throw new RuntimeException(e);
+//            } catch (InstantiationException e) {
+//                throw new RuntimeException(e);
+//            } catch (IllegalAccessException e) {
+//                throw new RuntimeException(e);
+//            } catch (NoSuchMethodException e) {
+//                throw new RuntimeException(e);
+//            } catch (InvocationTargetException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
         this.logger.info(msg);
     }
 
@@ -132,21 +132,21 @@ public class Logback implements Mlf4j {
     }
     @Override
     public void info(String format, Object... arguments) {
-        if(messageFormatter!=null){
-            try {
-                format=convertMessageFormatNoArgs(format,messageFormatter);
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        }
+//        if(messageFormatter!=null){
+//            try {
+//                format=convertMessageFormatNoArgs(format,messageFormatter);
+//            } catch (ClassNotFoundException e) {
+//                throw new RuntimeException(e);
+//            } catch (InstantiationException e) {
+//                throw new RuntimeException(e);
+//            } catch (IllegalAccessException e) {
+//                throw new RuntimeException(e);
+//            } catch (NoSuchMethodException e) {
+//                throw new RuntimeException(e);
+//            } catch (InvocationTargetException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
         logger.info(format,arguments);
     }
 
