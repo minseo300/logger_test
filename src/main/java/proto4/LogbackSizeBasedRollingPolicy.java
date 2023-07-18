@@ -17,6 +17,8 @@ import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static ch.qos.logback.core.CoreConstants.CODES_URL;
@@ -77,19 +79,74 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
     }
     @Override
     public void rollover() throws RolloverFailure {
-        try{
-            if(deleteByPeriodValue!=-1){
-                deleteFilesByPeriod();
-            }
-            else{
-                deleteFileByFileNumber();
-            }
-        }catch (Exception e){
-            throw new RuntimeException(e);
-        }
+        //////////////////////////////////////////////////////////////
         renameUtil.rename(getActiveFileName(), fileNamePattern.convertInt(maxIndex++));
 //        updateIndexToFile();
         numberOfFiles++;
+        //////////////////////////////////////////////////////////////
+//        deleteAsynchronously(deleteByPeriodValue,deleteByFileNumberValue);
+        try{
+            if(deleteByPeriodValue!=-1) {
+                deleteFilesByPeriod();
+            }
+            else {
+                deleteFileByFileNumber();
+            }
+        } catch (IOException e){
+            throw new RuntimeException(e);
+        }
+
+    }
+    private void deleteAsynchronously(int deleteByPeriodValue, int deleteByFileNumberValue){
+        List<File> rollOveredFileList = getRollOveredFiles();
+        DeleteRunnable runnable = new DeleteRunnable(rollOveredFileList,deleteByPeriodValue, deleteByFileNumberValue);
+        ExecutorService executorService = context.getScheduledExecutorService();
+        Future<?> future = executorService.submit(runnable);
+    }
+    private class DeleteRunnable implements Runnable {
+
+        private List<File> fileList;
+        private int periodValue;
+        private int numberValue;
+        DeleteRunnable(List<File> fileList, int periodValue, int numberValue) {
+            this.fileList = fileList;
+            this.periodValue = periodValue;
+            this.numberValue = numberValue;
+        }
+        private void deleteByPeriod(long now){
+            long fileTime;
+            System.out.println("[PERIOD] thread: "+Thread.currentThread());
+            for(File f:fileList) {
+                try {
+                    fileTime=((FileTime) Files.getAttribute(f.toPath(),"lastModifiedTime")).toMillis();
+                    if((now-fileTime)>= deleteByPeriodValue){
+                        Files.deleteIfExists(Paths.get(f.getPath()));
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        private void deleteByNumber(int numberValue){
+            System.out.println("[NUMBER] thread: "+Thread.currentThread().getName());
+            int haveToDelete=fileList.size()-numberValue;
+            try{
+                for(int i=0 ; i<haveToDelete ; i++) {
+                    Files.deleteIfExists(Paths.get(fileList.get(i).getPath()));
+                }
+            } catch (IOException e){
+                throw new RuntimeException(e);
+            }
+        }
+        @Override
+        public void run() {
+            long now=System.currentTimeMillis();
+            if(this.periodValue!=-1) {
+                deleteByPeriod(now);
+            } else{
+                deleteByNumber(this.numberValue);
+            }
+        }
     }
     private void deleteFilesByPeriod() throws IOException {
         List<File> rollOveredFileList=getRollOveredFiles();
@@ -99,7 +156,9 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
             creationTime=((FileTime) Files.getAttribute(f.toPath(),"creationTime")).toMillis();
             if((currentTime-creationTime)>= deleteByPeriodValue){
                 Files.deleteIfExists(Paths.get(f.getPath()));
-                minIndex= Integer.parseInt(f.getName().substring(f.getName().lastIndexOf("-")));
+                int s=f.getName().lastIndexOf("-")+1;
+                int e=f.getName().lastIndexOf(".log");
+                minIndex= Integer.parseInt(f.getName().substring(s,e));
                 System.out.println(minIndex);
             }
             else break;
@@ -113,6 +172,7 @@ public class LogbackSizeBasedRollingPolicy extends RollingPolicyBase {
             minIndex++;
         }
     }
+
 
 //    private void updateIndexToFile() {
 //        try{

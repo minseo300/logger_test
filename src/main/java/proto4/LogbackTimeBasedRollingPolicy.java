@@ -12,7 +12,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static ch.qos.logback.core.CoreConstants.CODES_URL;
 import static ch.qos.logback.core.CoreConstants.UNBOUND_HISTORY;
@@ -28,13 +31,11 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
     static FileNamePattern fileNamePattern;
     protected String elapsedPeriodsFileName;
     private int deleteByPeriodValue =-1;
-    private int deleteByFileNumberValue;
+    private int deleteByFileNumberValue=Integer.MAX_VALUE;
     private int maxHistory=0;
     private String path;
-    protected ArchiveRemover archiveRemover = null;
-    protected RollingCalendar rc;
-    boolean cleanHistoryOnStart = false;
-    Future<?> cleanUpFuture;
+
+    Future<?> deleteFuture;
 
 
     public LogbackTimeBasedRollingPolicy(String deleteByPeriodValue, String deleteByFileNumberValue){
@@ -64,104 +65,127 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         renameUtil.setContext(this.context);
         if (fileNamePatternStr != null) {
             fileNamePattern = new FileNamePattern(fileNamePatternStr, this.context);
-//            determineCompressionMode();
         } else {
             addError(FNP_NOT_SET);
             addError(CoreConstants.SEE_FNP_NOT_SET);
             throw new IllegalStateException(FNP_NOT_SET + CoreConstants.SEE_FNP_NOT_SET);
         }
-//        setArchiveRemover();
-
-//        if (maxHistory != UNBOUND_HISTORY) {
-//            this.archiveRemover.setMaxHistory(maxHistory);
-////            archiveRemover.setTotalSizeCap(totalSizeCap.getSize());
-//            if (cleanHistoryOnStart) {
-//                addInfo("Cleaning on start up");
-//                Date now = new Date(LogbackTimeBasedTriggeringPolicy.getCurrentTime());
-//                cleanUpFuture = archiveRemover.cleanAsynchronously(now);
-//            }
-//        }
-//        else if (!isUnboundedTotalSizeCap()) {
-//            addWarn("'maxHistory' is not set, ignoring 'totalSizeCap' option with value ["+totalSizeCap+"]");
-//        }
-
-//        compressor = new Compressor(compressionMode);
-//        compressor.setContext(this.context);
         super.start();
     }
+
+//    public void stop(){
+//        if(!isStarted()){
+//            return;
+//        }
+//        waitForAsynchronousJobToStop(deleteFuture,"delete");
+//        super.stop();
+//    }
+
+//    private void waitForAsynchronousJobToStop(Future<?> aFuture, String jobDescription){
+//        if (aFuture != null) {
+//            try {
+//                aFuture.get(CoreConstants.SECONDS_TO_WAIT_FOR_COMPRESSION_JOBS, TimeUnit.SECONDS);
+//            } catch (TimeoutException e) {
+//                addError("Timeout while waiting for " + jobDescription + " job to finish", e);
+//            } catch (Exception e) {
+//                addError("Unexpected exception while waiting for " + jobDescription + " job to finish", e);
+//            }
+//        }
+//    }
 
     @Override
     public void rollover() throws RolloverFailure {
 
-        try{
-            if(deleteByPeriodValue!=-1){
-                deleteFilesByPeriod();
-            }
-            else{
-                deleteFileByFileNumber();
-            }
-        }catch (Exception e){
-            throw new RuntimeException(e);
-        }
-
-        ///////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////
         Date dateOfElapsedPeriod = new Date();
         addInfo("Elapsed period: " + dateOfElapsedPeriod);
         elapsedPeriodsFileName = fileNamePattern.convert(dateOfElapsedPeriod);
         renameUtil.rename(getActiveFileName(),elapsedPeriodsFileName);
+        System.out.println("SUCCESS ROLLING ACTIVE FILE");
         //////////////////////////////////////////////////////////////
 
+        deleteAsynchronously(deleteByPeriodValue,deleteByFileNumberValue);
     }
-
-    private List<File> getRollOveredFiles(){
-        File dir=new File(path);
-        String rollOveredFileNamePrefix=getActiveFileName().substring(getActiveFileName().lastIndexOf("/")+1,getActiveFileName().lastIndexOf(".log"))+"_";
-        FilenameFilter filter= (dir1, name) -> name.startsWith(rollOveredFileNamePrefix)&&name.endsWith(".log");
-        File[] rollOveredFileList= dir.listFiles(filter);
-        Arrays.sort(rollOveredFileList, new Comparator<File>() {
-            @Override
-            public int compare(File o1, File o2) {
-                long n1=extractNumber(o1.getName());
-                long n2=extractNumber(o2.getName());
-                return (int) (n1-n2);
-            }
-            public long extractNumber(String name){
-                long i=0;
-                int s=name.indexOf("_")+1;
-                int e=name.lastIndexOf(".");
-                String number=name.substring(s,e);
-                if(number.contains("_")){
-                    number=number.substring(0,number.indexOf("_"))+number.substring((number.indexOf("_")+1));
-                }
-                i=Long.parseLong(number);
-                return i;
-            }
-        });
-        List<File> result=Arrays.asList(rollOveredFileList);
-
-        return result;
-    }
-
-    private void deleteFilesByPeriod() throws IOException {
-        List<File> rollOveredFileList=getRollOveredFiles();
-        long currentTime = System.currentTimeMillis();
-        long creationTime;
-        for(File f:rollOveredFileList){
-            creationTime=((FileTime) Files.getAttribute(f.toPath(),"creationTime")).toMillis();
-            if((currentTime-creationTime)>= deleteByPeriodValue){
-                Files.deleteIfExists(Paths.get(f.getPath()));
-            }
-        }
-    }
-    private void deleteFileByFileNumber() throws IOException {
-        List<File> rollOveredFileList=getRollOveredFiles();
-        if(rollOveredFileList.size()>=this.deleteByFileNumberValue){
-            Files.deleteIfExists(Paths.get(rollOveredFileList.get(0).getPath()));
-        }
-    }
-
     @Override
     public String getActiveFileName() {
         return getParentsRawFileProperty();
     }
+    private void deleteAsynchronously(int deleteByPeriodValue, int deleteByFileNumberValue){
+        DeleteRunnable runnable = new DeleteRunnable(deleteByPeriodValue, deleteByFileNumberValue);
+        ExecutorService executorService = context.getScheduledExecutorService();
+        Future<?> future = executorService.submit(runnable);
+    }
+
+    private class DeleteRunnable implements Runnable {
+
+        private List<File> fileList;
+        private int periodValue;
+        private int numberValue;
+        DeleteRunnable(int periodValue, int numberValue) {
+            this.periodValue = periodValue;
+            this.numberValue = numberValue;
+        }
+        private void deleteByPeriod(long now){
+            long fileTime;
+            System.out.println("[PERIOD] thread: "+Thread.currentThread());
+            for(File f:fileList) {
+                try {
+                    fileTime=((FileTime) Files.getAttribute(f.toPath(),"lastModifiedTime")).toMillis();
+                    if((now-fileTime)>= deleteByPeriodValue){
+                        Files.deleteIfExists(Paths.get(f.getPath()));
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        private void deleteByNumber(int numberValue){
+            System.out.println("[NUMBER] thread: "+Thread.currentThread().getName());
+            int haveToDelete=fileList.size()-numberValue;
+            try{
+                for(int i=0 ; i<haveToDelete ; i++) {
+                    Files.deleteIfExists(Paths.get(fileList.get(i).getPath()));
+                }
+            } catch (IOException e){
+                throw new RuntimeException(e);
+            }
+        }
+        private void getRollOveredFiles(){
+            File dir=new File(path);
+            String rollOveredFileNamePrefix=getActiveFileName().substring(getActiveFileName().lastIndexOf("/")+1,getActiveFileName().lastIndexOf(".log"))+"_";
+            FilenameFilter filter= (dir1, name) -> name.startsWith(rollOveredFileNamePrefix)&&name.endsWith(".log");
+            File[] rollOveredFileList= dir.listFiles(filter);
+            Arrays.sort(rollOveredFileList, new Comparator<File>() {
+                @Override
+                public int compare(File o1, File o2) {
+                    long n1=extractNumber(o1.getName());
+                    long n2=extractNumber(o2.getName());
+                    return (int) (n1-n2);
+                }
+                public long extractNumber(String name){
+                    long i=0;
+                    int s=name.indexOf("_")+1;
+                    int e=name.lastIndexOf(".");
+                    String number=name.substring(s,e);
+                    if(number.contains("_")){
+                        number=number.substring(0,number.indexOf("_"))+number.substring((number.indexOf("_")+1));
+                    }
+                    i=Long.parseLong(number);
+                    return i;
+                }
+            });
+            this.fileList=Arrays.asList(rollOveredFileList);
+        }
+        @Override
+        public void run() {
+            long now=System.currentTimeMillis();
+            getRollOveredFiles();
+            if(this.periodValue!=-1) {
+                deleteByPeriod(now);
+            } else{
+                deleteByNumber(this.numberValue);
+            }
+        }
+    }
+
 }

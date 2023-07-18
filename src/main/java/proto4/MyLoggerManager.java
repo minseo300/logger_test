@@ -1,6 +1,7 @@
 package proto4;
 
 import ch.qos.logback.core.LayoutBase;
+import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import org.apache.logging.log4j.message.MessageFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -37,7 +38,7 @@ public class MyLoggerManager {
         this.myLoggerType=my;
         this.frameworkType= myLoggerType.getType();
         Logger1.initialize();
-        Logger2.initialize();
+//        Logger2.initialize();
     }
     public void addLogger(String loggerName, MyLogger logger){
         loggerRegistry.put(loggerName,logger);
@@ -70,5 +71,4 @@ public class MyLoggerManager {
 //    public static LayoutBase getLogbackLogFormatter(String loggerName){
 //
 //    }
-
 }

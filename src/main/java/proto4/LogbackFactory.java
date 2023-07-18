@@ -38,7 +38,7 @@ public class LogbackFactory {
         rollingFileAppender.setName(appenderName);
 
         // create RollingPolicy
-        RollingPolicyBase rollingPolicyBase=createRollingPolicy(rollingPolicy,context,rotatedFileName,deleteRollingFilePeriod,limitRollingFileNumber);
+        RollingPolicyBase rollingPolicyBase=createRollingPolicy(fileName,rollingPolicy,context,rotatedFileName,deleteRollingFilePeriod,limitRollingFileNumber);
         rollingPolicyBase.setParent(rollingFileAppender);
         rollingPolicyBase.setContext(context);
         rollingPolicyBase.setFileNamePattern(rotatedFileName);
@@ -69,7 +69,7 @@ public class LogbackFactory {
 
         return triggeringPolicyBase;
     }
-    public RollingPolicyBase createRollingPolicy(String rollingPolicy,LoggerContext context,String fileNamePattern,String deleteByPeriod, String deleteByFileNumber){
+    public RollingPolicyBase createRollingPolicy(String fileName,String rollingPolicy,LoggerContext context,String fileNamePattern,String deleteByPeriod, String deleteByFileNumber){
         RollingPolicyBase rollingPolicyBase=null;
         if(rollingPolicy.equals("time")){
             rollingPolicyBase=new LogbackTimeBasedRollingPolicy(deleteByPeriod,deleteByFileNumber);
