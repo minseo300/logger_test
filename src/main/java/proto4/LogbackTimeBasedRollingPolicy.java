@@ -34,11 +34,13 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
     private int deleteByFileNumberValue=Integer.MAX_VALUE;
     private int maxHistory=0;
     private String path;
+    private Calendar cal = Calendar.getInstance();
 
     Future<?> deleteFuture;
+    private String intervalUnit;
 
 
-    public LogbackTimeBasedRollingPolicy(String deleteByPeriodValue, String deleteByFileNumberValue){
+    public LogbackTimeBasedRollingPolicy(String intervalUnit,String deleteByPeriodValue, String deleteByFileNumberValue){
         if(deleteByPeriodValue!=null){
             String timeUnit=deleteByPeriodValue.substring(deleteByPeriodValue.length()-1);
             String timeValue=deleteByPeriodValue.substring(0,deleteByPeriodValue.length()-1);
@@ -47,6 +49,7 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         else{
             this.deleteByFileNumberValue = Integer.parseInt(deleteByFileNumberValue)-1;
         }
+        this.intervalUnit=intervalUnit;
 
     }
     public void setFileNamePattern(String fnp){
@@ -95,15 +98,18 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
 
     @Override
     public void rollover() throws RolloverFailure {
-
+        long now=System.currentTimeMillis();
         //////////////////////////////////////////////////////////////
         Date dateOfElapsedPeriod = new Date();
+        cal.setTime(dateOfElapsedPeriod);
+        dateOfElapsedPeriod=getExactFileName();
+
         addInfo("Elapsed period: " + dateOfElapsedPeriod);
         elapsedPeriodsFileName = fileNamePattern.convert(dateOfElapsedPeriod);
         renameUtil.rename(getActiveFileName(),elapsedPeriodsFileName);
         System.out.println("SUCCESS ROLLING ACTIVE FILE");
         //////////////////////////////////////////////////////////////
-
+        System.out.println("ROLLOVER TIME: "+(System.currentTimeMillis()-now));
         deleteAsynchronously(deleteByPeriodValue,deleteByFileNumberValue);
     }
     @Override
@@ -114,6 +120,34 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         DeleteRunnable runnable = new DeleteRunnable(deleteByPeriodValue, deleteByFileNumberValue);
         ExecutorService executorService = context.getScheduledExecutorService();
         Future<?> future = executorService.submit(runnable);
+    }
+    private Date getExactFileName(){
+        Date result;
+        switch (intervalUnit) {
+            case "d":
+            case "D":
+            case "day":
+                cal.add(Calendar.DATE,-1);
+                break;
+            case "h":
+            case "H":
+            case "hour":
+                cal.add(Calendar.HOUR,-1);
+                break;
+            case "m":
+            case "M":
+            case "minute":
+                cal.add(Calendar.MINUTE,-1);
+                break;
+            case "s":
+            case "S":
+            case "second":
+                cal.add(Calendar.SECOND,-1);
+                break;
+        }
+        result=cal.getTime();
+
+        return result;
     }
 
     private class DeleteRunnable implements Runnable {

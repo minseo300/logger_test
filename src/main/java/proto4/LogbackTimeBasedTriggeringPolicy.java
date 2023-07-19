@@ -1,5 +1,6 @@
 package proto4;
 
+import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import ch.qos.logback.core.rolling.TriggeringPolicyBase;
 import ch.qos.logback.core.rolling.helper.ArchiveRemover;
 import ch.qos.logback.core.rolling.helper.RollingCalendar;
@@ -43,12 +44,9 @@ public class LogbackTimeBasedTriggeringPolicy extends TriggeringPolicyBase {
     @Override
     public boolean isTriggeringEvent(File activeFile, Object event) {
         currentTime = System.currentTimeMillis();
-
         try {
             FileTime creationTime=(FileTime) Files.getAttribute(activeFile.toPath(),"creationTime");
-            if(currentTime-creationTime.toMillis()>=interval){
-//                System.out.println("[triggeringPolicy] currentTime: "+currentTime+" creationTime: "+creationTime.toString());
-//                System.out.println("interval: "+interval+" current-creation: "+(currentTime- creationTime.toMillis()));
+            if(currentTime-creationTime.toMillis()>interval){
                 return true;
             }
         } catch (IOException e) {
