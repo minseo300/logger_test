@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class LogbackTimeBasedTriggeringPolicy extends TriggeringPolicyBase {
@@ -22,7 +23,7 @@ public class LogbackTimeBasedTriggeringPolicy extends TriggeringPolicyBase {
     private long nextRollOverTime;
     private String timeUnit;
     private String timeValue;
-    private SimpleDateFormat dateFormat;
+    private Calendar cal=Calendar.getInstance();
     private boolean isStarted=false;
     public void setInterval(String timeBasePolicyValue, String timeBasePolicyUnit){
         this.timeUnit=timeBasePolicyUnit;
@@ -34,44 +35,38 @@ public class LogbackTimeBasedTriggeringPolicy extends TriggeringPolicyBase {
     }
 
     private void setCurrentTime(long now){
-        Date dateFromCurrentTime=new Date(now);
-        String ret;
-        try {
-            switch(timeUnit.toUpperCase()) {
-                case "D":
-                case "DAY":
-                    dateFormat=new SimpleDateFormat("yyyyMMdd000000");
-                    ret=dateFormat.format(dateFromCurrentTime);
-                    dateFromCurrentTime=dateFormat.parse(ret);
-                    break;
-                case "H":
-                case "HOUR":
-                    dateFormat=new SimpleDateFormat("yyyyMMddHH0000");
-                    ret=dateFormat.format(dateFromCurrentTime);
-                    dateFromCurrentTime=dateFormat.parse(ret);
-                    break;
-                case "M":
-                case "MINUTE":
-                    dateFormat=new SimpleDateFormat("yyyyMMddHHmm00");
-                    ret=dateFormat.format(dateFromCurrentTime);
-                    dateFromCurrentTime=dateFormat.parse(ret);
-                    break;
-                case "S":
-                case "SECOND":
-                    dateFormat=new SimpleDateFormat("yyyyMMddHHmmss");
-                    ret=dateFormat.format(dateFromCurrentTime);
-                    dateFromCurrentTime=dateFormat.parse(ret);
-                    break;
-            }
-        } catch (ParseException e){
-            System.out.println(e);
+        cal.setTime(new Date(now));
+        switch(timeUnit.toUpperCase()) {
+            case "D":
+            case "DAY":
+                cal.set(Calendar.HOUR,0);
+                cal.set(Calendar.MINUTE,0);
+                cal.set(Calendar.SECOND,0);
+                cal.set(Calendar.MILLISECOND,0);
+                break;
+            case "H":
+            case "HOUR":
+                cal.set(Calendar.MINUTE,0);
+                cal.set(Calendar.SECOND,0);
+                cal.set(Calendar.MILLISECOND,0);
+                break;
+            case "M":
+            case "MINUTE":
+                cal.set(Calendar.SECOND,0);
+                cal.set(Calendar.MILLISECOND,0);
+                break;
+            case "S":
+            case "SECOND":
+                cal.set(Calendar.MILLISECOND,0);
+                break;
         }
-        this.currentTime=dateFromCurrentTime.getTime();
+        Date date=cal.getTime();
+        this.currentTime=date.getTime();
     }
     @Override
     public boolean isTriggeringEvent(File activeFile, Object event) {
+        setCurrentTime(System.currentTimeMillis());
         if(!isStarted) {
-            setCurrentTime(System.currentTimeMillis());
             nextRollOverTime=currentTime+interval;
             isStarted=true;
         }
@@ -80,6 +75,7 @@ public class LogbackTimeBasedTriggeringPolicy extends TriggeringPolicyBase {
         }
 
         if(currentTime>=nextRollOverTime) {
+            setCurrentTime(currentTime);
             nextRollOverTime=currentTime+interval;
             return true;
         }
