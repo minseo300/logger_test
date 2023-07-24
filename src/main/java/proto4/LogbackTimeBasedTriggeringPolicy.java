@@ -10,47 +10,78 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class LogbackTimeBasedTriggeringPolicy extends TriggeringPolicyBase {
     private int interval;
     protected String elapsedPeriodsFileName;
-    protected Date dateInCurrentPeriod = null;
-    protected ArchiveRemover archiveRemover = null;
-    protected RollingCalendar rc;
+
     private long currentTime;
-//    public LogbackTimeBasedTriggeringPolicy(){
-//        archiveRemover=new TimeBasedArchiveRemover()
-//    }
+    private long nextRollOverTime;
+    private String timeUnit;
+    private String timeValue;
+    private SimpleDateFormat dateFormat;
+    private boolean isStarted=false;
     public void setInterval(String timeBasePolicyValue, String timeBasePolicyUnit){
-//        if(timeBasePolicyUnit.equals("hour")){
-//            this.interval=Integer.parseInt(timeBasePolicyValue)*60*60*1000;
-//        }
-//        else if(timeBasePolicyUnit.equals("minute")){
-//            this.interval=Integer.parseInt(timeBasePolicyValue)*60*1000;
-//
-//        }
-//        else if(timeBasePolicyUnit.equals("second")){
-//            this.interval=Integer.parseInt(timeBasePolicyValue)*1000;
-//        }
-//        else if(timeBasePolicyUnit.equals("day")){
-//            this.interval=Integer.parseInt(timeBasePolicyValue)*60*60*24*1000;
-//        }
+        this.timeUnit=timeBasePolicyUnit;
+        this.timeValue=timeBasePolicyValue;
         this.interval=MyLogger.getMillisByTimeValueAndUnit(timeBasePolicyUnit,timeBasePolicyValue);
     }
     public String getElapsedPeriodsFileName() {
         return elapsedPeriodsFileName;
     }
+
+    private void setCurrentTime(long now){
+        Date dateFromCurrentTime=new Date(now);
+        String ret;
+        try {
+            switch(timeUnit.toUpperCase()) {
+                case "D":
+                case "DAY":
+                    dateFormat=new SimpleDateFormat("yyyyMMdd000000");
+                    ret=dateFormat.format(dateFromCurrentTime);
+                    dateFromCurrentTime=dateFormat.parse(ret);
+                    break;
+                case "H":
+                case "HOUR":
+                    dateFormat=new SimpleDateFormat("yyyyMMddHH0000");
+                    ret=dateFormat.format(dateFromCurrentTime);
+                    dateFromCurrentTime=dateFormat.parse(ret);
+                    break;
+                case "M":
+                case "MINUTE":
+                    dateFormat=new SimpleDateFormat("yyyyMMddHHmm00");
+                    ret=dateFormat.format(dateFromCurrentTime);
+                    dateFromCurrentTime=dateFormat.parse(ret);
+                    break;
+                case "S":
+                case "SECOND":
+                    dateFormat=new SimpleDateFormat("yyyyMMddHHmmss");
+                    ret=dateFormat.format(dateFromCurrentTime);
+                    dateFromCurrentTime=dateFormat.parse(ret);
+                    break;
+            }
+        } catch (ParseException e){
+            System.out.println(e);
+        }
+        this.currentTime=dateFromCurrentTime.getTime();
+    }
     @Override
     public boolean isTriggeringEvent(File activeFile, Object event) {
-        currentTime = System.currentTimeMillis();
-        try {
-            FileTime creationTime=(FileTime) Files.getAttribute(activeFile.toPath(),"creationTime");
-            if(currentTime-creationTime.toMillis()>interval){
-                return true;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if(!isStarted) {
+            setCurrentTime(System.currentTimeMillis());
+            nextRollOverTime=currentTime+interval;
+            isStarted=true;
+        }
+        else {
+            currentTime=System.currentTimeMillis();
+        }
+
+        if(currentTime>=nextRollOverTime) {
+            nextRollOverTime=currentTime+interval;
+            return true;
         }
         return false;
     }
