@@ -153,29 +153,25 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         private List<File> fileList;
         private int periodValue;
         private int numberValue;
-        private String deleteUnit;
-        private String fileNamePatternStr;
         private long now;
-        private int timeLength;
+        private int timeIndexLength;
         DeleteRunnable(int periodValue, int numberValue,String deleteUnit, String fileNamePatternStr, long now) {
             this.periodValue = periodValue;
             this.numberValue = numberValue;
-            this.deleteUnit=deleteUnit;
-            this.fileNamePatternStr=getPattern(fileNamePatternStr);
+            setTimeIndexLength(fileNamePatternStr);
             this.now=now;
         }
-        private String getPattern(String fileNamePatternStr){
+        private void setTimeIndexLength(String fileNamePatternStr){
             int s = fileNamePatternStr.indexOf("{") + 1;
             int e= fileNamePatternStr.lastIndexOf("}");
             String sub=fileNamePatternStr.substring(s,e);
-            this.timeLength=e-s;
-            return sub;
+            this.timeIndexLength=e-s;
         }
         private long getFileTimeByName(String fileName) {
             System.out.println("[getFileTimeByName] "+fileName.length());
             int end=fileName.lastIndexOf(".log");
             System.out.println("================================");
-            fileName=fileName.substring(end-timeLength,end);
+            fileName=fileName.substring(end-timeIndexLength,end);
             System.out.println("fileTime: "+fileName);
 
             long ret=0L;

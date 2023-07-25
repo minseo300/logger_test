@@ -5,6 +5,7 @@ import ch.qos.logback.classic.*;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.Layout;
@@ -67,8 +68,9 @@ public class Logback implements Mlf4j {
         this.logger.setAdditive(additivity);
         this.logger.setLevel(level);
 
-        AsyncAppender asyncAppender=new AsyncAppender();
         if(async){
+            AsyncAppender asyncAppender=new AsyncAppender();
+//            LogbackAsyncAppender2 asyncAppender=new LogbackAsyncAppender2(this.logger.getName(),this.logger,level);
             asyncAppender.setContext(context);
             asyncAppender.addAppender(logFileAppender);
             asyncAppender.setQueueSize(100);
@@ -118,6 +120,7 @@ public class Logback implements Mlf4j {
 //                throw new RuntimeException(e);
 //            }
 //        }
+//        this.logger.makeLoggingEventBuilder()
         this.logger.info(msg);
     }
 
@@ -147,8 +150,16 @@ public class Logback implements Mlf4j {
 //                throw new RuntimeException(e);
 //            }
 //        }
+        format=getMsg(format);
         logger.info(format,arguments);
     }
+
+    public String getMsg(String format) {
+        String guid="[GUID-132392983921849814] ";
+        String stackTrace=" (proto4.Main.main.455)";
+        return guid+format+stackTrace;
+    }
+
 
     @Override
     public void info(String msg, Throwable t) {
