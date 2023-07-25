@@ -80,19 +80,21 @@ public class MyLogger {
     public static int getMillisByTimeValueAndUnit (String timeUnit, String timeValue) {
         int millis=0;
 
-        switch (timeUnit) {
-            case "d":
-            case "day":
+        switch (timeUnit.toUpperCase()) {
             case "D":
+            case "DAY":
                 millis=60*60*24*Integer.parseInt(timeValue);
                 break;
-            case "h":
+            case "H":
+            case "HOUR":
                 millis=60*60*Integer.parseInt(timeValue);
                 break;
-            case "m":
+            case "M":
+            case "MINUTE":
                 millis=60*Integer.parseInt(timeValue);
                 break;
-            case "s":
+            case "S":
+            case "SECOND":
                 millis=Integer.parseInt(timeValue);
                 break;
             default:

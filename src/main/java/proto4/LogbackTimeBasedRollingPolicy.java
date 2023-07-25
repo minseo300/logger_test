@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -28,7 +30,7 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
     static final String FNP_NOT_SET = "The \"FileNamePattern\" property must be set before using FixedWindowRollingPolicy. ";
     static final String PRUDENT_MODE_UNSUPPORTED = "See also "+CODES_URL+"#tbr_fnp_prudent_unsupported";
     static final String SEE_PARENT_FN_NOT_SET = "Please refer to "+CODES_URL+"#fwrp_parentFileName_not_set";
-    static FileNamePattern fileNamePattern;
+    FileNamePattern fileNamePattern;
     protected String elapsedPeriodsFileName;
     private int deleteByPeriodValue =-1;
     private int deleteByFileNumberValue=Integer.MAX_VALUE;
@@ -38,16 +40,17 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
 
     Future<?> deleteFuture;
     private String intervalUnit;
+    private String deleteUnit;
 
 
     public LogbackTimeBasedRollingPolicy(String intervalUnit,String deleteByPeriodValue, String deleteByFileNumberValue){
         if(deleteByPeriodValue!=null){
-            String timeUnit=deleteByPeriodValue.substring(deleteByPeriodValue.length()-1);
+            this.deleteUnit=deleteByPeriodValue.substring(deleteByPeriodValue.length()-1);
             String timeValue=deleteByPeriodValue.substring(0,deleteByPeriodValue.length()-1);
-            this.deleteByPeriodValue =MyLogger.getMillisByTimeValueAndUnit(timeUnit,timeValue);
+            this.deleteByPeriodValue =MyLogger.getMillisByTimeValueAndUnit(deleteUnit,timeValue);
         }
         else{
-            this.deleteByFileNumberValue = Integer.parseInt(deleteByFileNumberValue)-1;
+            this.deleteByFileNumberValue = Integer.parseInt(deleteByFileNumberValue);
         }
         this.intervalUnit=intervalUnit;
 
@@ -56,13 +59,10 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         this.fileNamePatternStr=fnp;
         this.setPath();
     }
-//    public void setMaxHistory()
     public void setPath(){
         int lastIndex=fileNamePatternStr.lastIndexOf("/");
         this.path=fileNamePatternStr.substring(0,lastIndex+1);
-        System.out.println("path: "+path);
     }
-
 
     public void start(){
         renameUtil.setContext(this.context);
@@ -103,21 +103,19 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         Date dateOfElapsedPeriod = new Date();
         cal.setTime(dateOfElapsedPeriod);
         dateOfElapsedPeriod=getExactFileName();
-
+        System.out.println(dateOfElapsedPeriod);
         addInfo("Elapsed period: " + dateOfElapsedPeriod);
         elapsedPeriodsFileName = fileNamePattern.convert(dateOfElapsedPeriod);
         renameUtil.rename(getActiveFileName(),elapsedPeriodsFileName);
-        System.out.println("SUCCESS ROLLING ACTIVE FILE");
         //////////////////////////////////////////////////////////////
-        System.out.println("ROLLOVER TIME: "+(System.currentTimeMillis()-now));
-        deleteAsynchronously(deleteByPeriodValue,deleteByFileNumberValue);
+        deleteAsynchronously(now);
     }
     @Override
     public String getActiveFileName() {
         return getParentsRawFileProperty();
     }
-    private void deleteAsynchronously(int deleteByPeriodValue, int deleteByFileNumberValue){
-        DeleteRunnable runnable = new DeleteRunnable(deleteByPeriodValue, deleteByFileNumberValue);
+    private void deleteAsynchronously(long now){
+        DeleteRunnable runnable = new DeleteRunnable(deleteByPeriodValue, deleteByFileNumberValue,deleteUnit,fileNamePatternStr,now);
         ExecutorService executorService = context.getScheduledExecutorService();
         Future<?> future = executorService.submit(runnable);
     }
@@ -155,16 +153,77 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         private List<File> fileList;
         private int periodValue;
         private int numberValue;
-        DeleteRunnable(int periodValue, int numberValue) {
+        private String deleteUnit;
+        private String fileNamePatternStr;
+        private long now;
+        private int timeLength;
+        DeleteRunnable(int periodValue, int numberValue,String deleteUnit, String fileNamePatternStr, long now) {
             this.periodValue = periodValue;
             this.numberValue = numberValue;
+            this.deleteUnit=deleteUnit;
+            this.fileNamePatternStr=getPattern(fileNamePatternStr);
+            this.now=now;
         }
-        private void deleteByPeriod(long now){
+        private String getPattern(String fileNamePatternStr){
+            int s = fileNamePatternStr.indexOf("{") + 1;
+            int e= fileNamePatternStr.lastIndexOf("}");
+            String sub=fileNamePatternStr.substring(s,e);
+            this.timeLength=e-s;
+            return sub;
+        }
+        private long getFileTimeByName(String fileName) {
+            System.out.println("[getFileTimeByName] "+fileName.length());
+            int end=fileName.lastIndexOf(".log");
+            System.out.println("================================");
+            fileName=fileName.substring(end-timeLength,end);
+            System.out.println("fileTime: "+fileName);
+
+            long ret=0L;
+            SimpleDateFormat dateFormat = null;
+
+            try {
+                if(fileName.length()==13) {
+                    dateFormat = new SimpleDateFormat("yyMMdd_HHmmss");
+                } else if(fileName.length() == 11) {
+                    dateFormat = new SimpleDateFormat("yyMMdd_HHmm");
+                } else if(fileName.length() == 9) {
+                    dateFormat = new SimpleDateFormat("yyMMdd_HH");
+                } else if(fileName.length() == 6) {
+                    dateFormat = new SimpleDateFormat("yyMMdd");
+                }
+
+                ret=dateFormat.parse(fileName).getTime();
+                System.out.println("ret: "+ret);
+            } catch (ParseException e) {
+                addError(e.getMessage());
+            }
+
+            return ret;
+        }
+        private void periodByFileName(long now) {
             long fileTime;
-            System.out.println("[PERIOD] thread: "+Thread.currentThread());
+            System.out.println("[periodByFileName]");
+            for(File f : fileList) {
+                System.out.println("fileName: "+f.getName());
+                try {
+                    fileTime=getFileTimeByName(f.getName());
+                    System.out.println("-fileTime: "+fileTime);
+                    if((now - fileTime) >= deleteByPeriodValue) {
+                        Files.deleteIfExists(Paths.get(f.getPath()));
+                    }
+                } catch (IOException e){
+                    addError(e.getMessage());
+                }
+            }
+        }
+        private void periodByLastModifiedTime(long now) {
+            long fileTime;
+            System.out.println("[periodByLastModifiedTime]");
             for(File f:fileList) {
                 try {
                     fileTime=((FileTime) Files.getAttribute(f.toPath(),"lastModifiedTime")).toMillis();
+                    System.out.println(f.getName() + " " + fileTime);
+                    System.out.println((now-fileTime) + " " + deleteByPeriodValue);
                     if((now-fileTime)>= deleteByPeriodValue){
                         Files.deleteIfExists(Paths.get(f.getPath()));
                     }
@@ -173,11 +232,27 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
                 }
             }
         }
+        private void deleteByPeriod(long now){
+            long fileTime;
+            System.out.println("[periodByFileName]");
+            for(File f : fileList) {
+                System.out.println("fileName: "+f.getName());
+                try {
+                    fileTime=getFileTimeByName(f.getName());
+                    System.out.println("-fileTime: "+fileTime);
+                    if((now - fileTime) >= deleteByPeriodValue) {
+                        Files.deleteIfExists(Paths.get(f.getPath()));
+                    }
+                } catch (IOException e){
+                    addError(e.getMessage());
+                }
+            }
+
+        }
         private void deleteByNumber(int numberValue){
-            System.out.println("[NUMBER] thread: "+Thread.currentThread().getName());
             int haveToDelete=fileList.size()-numberValue;
             try{
-                for(int i=0 ; i<haveToDelete ; i++) {
+                for(int i=0 ; i<= haveToDelete ; i++) {
                     Files.deleteIfExists(Paths.get(fileList.get(i).getPath()));
                 }
             } catch (IOException e){
@@ -212,7 +287,6 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         }
         @Override
         public void run() {
-            long now=System.currentTimeMillis();
             getRollOveredFiles();
             if(this.periodValue!=-1) {
                 deleteByPeriod(now);

@@ -1,5 +1,7 @@
 package proto4;
 
+import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
+
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -18,12 +20,11 @@ public class Main {
         {
             logger1.info("Rolling file appender example... {}",Integer.valueOf(i));
             try{
-                Thread.sleep(100);
+                Thread.sleep(300);
             }
             catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-
     }
 }
