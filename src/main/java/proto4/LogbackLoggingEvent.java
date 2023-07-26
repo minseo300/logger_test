@@ -17,9 +17,12 @@ public class LogbackLoggingEvent extends LoggingEvent {
         super(fqcn, logger, level, message, throwable, argArray);
         setPrePostMessage();
     }
+    public String getLogDebug() {
+        return this.logDebug;
+    }
 
     private void setPrePostMessage(){
-        guid="123093205932012312";
+        guid="asdasdasdasdasdsadsdsadsadsadasd";
         logDebug = " (qwerqwerqwerqwer)";
     }
 }

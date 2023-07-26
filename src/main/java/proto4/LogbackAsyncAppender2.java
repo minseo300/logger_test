@@ -6,13 +6,14 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.AsyncAppenderBase;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class LogbackAsyncAppender2<E> extends AsyncAppenderBase<E> {
+public class LogbackAsyncAppender2<E> extends LogbackAsyncBase<E> {
 
     boolean includeCallerData = false;
     public static final int DEFAULT_QUEUE_SIZE = 256;
@@ -42,27 +43,35 @@ public class LogbackAsyncAppender2<E> extends AsyncAppenderBase<E> {
         return level.toInt() <= Level.INFO_INT;
     }
 
+    public LogbackAsyncAppender2(){
+
+    }
     public LogbackAsyncAppender2(String fqcn, Logger logger, Level level) {
         this.FQCN=fqcn;
         this.logger=logger;
         this.level=level;
     }
 
-    private ILoggingEvent preprocess2(ILoggingEvent eventObject) {
+    private void preprocess2(ILoggingEvent eventObject) {
         eventObject.prepareForDeferredProcessing();
-        String msg=eventObject.getFormattedMessage();
-        msg="[GUID-123325234532412493] " + msg + "(proto4.Main.main:45)";
-        eventObject=new LoggingEvent(FQCN,logger,level,msg,null,null);
+        LoggingEvent le = (LoggingEvent) eventObject;
+        String msg=le.getFormattedMessage();
+//        msg="[GUID-123325234532412493] " + msg + " (proto4.Main.main:15)";
+
+        Logger logger = (Logger) LoggerFactory.getLogger(le.getLoggerName());
+        String FQCN = ch.qos.logback.classic.Logger.class.getName();
+
+        LogbackLoggingEvent newLe = new LogbackLoggingEvent(FQCN,logger,le.getLevel(),msg,null,le.getArgumentArray());
         if (includeCallerData)
             eventObject.getCallerData();
-        return eventObject;
     }
 
-    protected void append(E eventObject) {
+    public void append(E eventObject) {
         if (isQueueBelowDiscardingThreshold() && isDiscardable(eventObject)) {
             return;
         }
-        eventObject = (E) this.preprocess2((ILoggingEvent) eventObject);
+
+        preprocess(eventObject);
         put(eventObject);
     }
 

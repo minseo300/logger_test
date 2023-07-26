@@ -1,17 +1,12 @@
 package proto4;
 
-import ch.qos.logback.classic.AsyncAppender;
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.AsyncAppenderBase;
 
-public class LogbackAsyncAppender extends AsyncAppender {
+public class LogbackAsyncAppender3 extends AsyncAppenderBase<ILoggingEvent> {
+
     boolean includeCallerData = false;
-    private String FQCN;
-    private Logger logger;
-    private Level level;
-
 
     /**
      * Events of level TRACE, DEBUG and INFO are deemed to be discardable.
@@ -24,11 +19,10 @@ public class LogbackAsyncAppender extends AsyncAppender {
         return level.toInt() <= Level.INFO_INT;
     }
 
-
-    public LogbackAsyncAppender(String fqcn,Logger logger, Level level) {
-        this.FQCN=fqcn;
-        this.logger=logger;
-        this.level=level;
+    protected void preprocess(ILoggingEvent eventObject) {
+        eventObject.prepareForDeferredProcessing();
+        if (includeCallerData)
+            eventObject.getCallerData();
     }
 
     public boolean isIncludeCallerData() {
@@ -40,10 +34,7 @@ public class LogbackAsyncAppender extends AsyncAppender {
     }
 
     public void append(ILoggingEvent eventObject) {
-        String msg= eventObject.getFormattedMessage();
-        msg="[!!!!GUID-123325234532412493] " + msg + "(proto4.Main.main:45)";
-        LoggingEvent le=new LoggingEvent(FQCN,logger,level,msg,null,null);
 
-        super.append(le);
     }
+
 }

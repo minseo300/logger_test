@@ -18,6 +18,7 @@ import ch.qos.logback.core.util.FileSize;
 import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
+import org.slf4j.helpers.MessageFormatter;
 import sun.rmi.runtime.Log;
 
 import java.lang.reflect.InvocationTargetException;
@@ -69,7 +70,8 @@ public class Logback implements Mlf4j {
         this.logger.setLevel(level);
 
         if(async){
-            AsyncAppender asyncAppender=new AsyncAppender();
+            String FQCN = ch.qos.logback.classic.Logger.class.getName();
+            LogbackAsyncAppender asyncAppender=new LogbackAsyncAppender(FQCN,logger,level);
 //            LogbackAsyncAppender2 asyncAppender=new LogbackAsyncAppender2(this.logger.getName(),this.logger,level);
             asyncAppender.setContext(context);
             asyncAppender.addAppender(logFileAppender);
@@ -151,8 +153,14 @@ public class Logback implements Mlf4j {
 //            }
 //        }
 //        format=getMsg(format);
+//        String formattedMsg = MessageFormatter.arrayFormat(format,arguments).getMessage();
+//        String FQCN = ch.qos.logback.classic.Logger.class.getName();
+//
+//        LogbackLoggingEvent le = new LogbackLoggingEvent(FQCN,logger,Level.INFO,formattedMsg,null,null);
+//        String msg=le.getGuid()+le.getFormattedMessage()+le.getLogDebug();
         logger.info(format,arguments);
     }
+
 
     public String getMsg(String format) {
         String guid="[GUID-132392983921849814] ";
