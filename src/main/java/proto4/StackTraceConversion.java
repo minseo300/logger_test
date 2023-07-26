@@ -9,16 +9,16 @@ public class StackTraceConversion extends ClassicConverter {
     @Override
     public String convert(ILoggingEvent event) {
         StringBuilder logDebugBuilder=new StringBuilder();
-        StackTraceElement source= StackLocatorUtil.calcLocation(MyLogger.class.getName());
-        if(source==null) return null;
+        String ret=null;
+        if(event instanceof LogbackLoggingEvent) {
+            LogbackLoggingEvent le = (LogbackLoggingEvent) event;
 
-        String declaringClass= source.getClassName();
-        int line=source.getLineNumber();
-        String method= source.getMethodName();
+            if(le.getLogDebug()!=null) {
+                ret=le.getLogDebug();
+            }
+        }
 
-        logDebugBuilder.append(" (").append(declaringClass).append(":").append(method).append(":").append(line).append(")");
-        String logDebug=logDebugBuilder.toString();
 
-        return logDebug;
+        return ret;
     }
 }

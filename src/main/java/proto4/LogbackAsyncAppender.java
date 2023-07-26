@@ -41,8 +41,7 @@ public class LogbackAsyncAppender extends AsyncAppender {
 
     public void append(ILoggingEvent eventObject) {
         String msg= eventObject.getFormattedMessage();
-        msg="[!!!!GUID-123325234532412493] " + msg + "(proto4.Main.main:45)";
-        LoggingEvent le=new LoggingEvent(FQCN,logger,level,msg,null,null);
+        LogbackLoggingEvent le=new LogbackLoggingEvent(FQCN,logger,level,msg,null,null);
 
         super.append(le);
     }
