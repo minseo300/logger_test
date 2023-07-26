@@ -218,13 +218,12 @@ public class LogbackRollingFileAppender<E> extends FileAppender<E> {
         }
         LoggingEvent le = (LoggingEvent) event;
         String msg=le.getFormattedMessage();
-        msg="[GUID-123325234532412493] " + msg + " (proto4.Main.main:15)";
+//        msg="[GUID-123325234532412493] " + msg + " (proto4.Main.main:15)";
 
         Logger logger = (Logger) LoggerFactory.getLogger(le.getLoggerName());
         String FQCN = ch.qos.logback.classic.Logger.class.getName();
 
-        LoggingEvent newLe = new LoggingEvent(FQCN,logger,le.getLevel(),msg,null,le.getArgumentArray());
-
+        LogbackLoggingEvent newLe = new LogbackLoggingEvent(FQCN,logger,le.getLevel(),msg,null,le.getArgumentArray());
         super.subAppend((E) newLe);
     }
 
