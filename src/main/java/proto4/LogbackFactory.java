@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class LogbackFactory {
 
-    public RollingFileAppender create(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params,String formatter,LoggerContext context){
+    public LogbackRollingFileAppender create(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params,String formatter,LoggerContext context){
         String path = params.getPath();
         String timeBasePolicyUnit=params.getTimeBasePolicyUnit();
         String rollingPolicy=params.getRollingPolicy();
@@ -30,7 +30,7 @@ public class LogbackFactory {
         PatternLayoutEncoder layoutEncoder=createLayoutEncoder(context);
 
         // create RollingFileAppender
-        RollingFileAppender rollingFileAppender=new RollingFileAppender();
+        LogbackRollingFileAppender rollingFileAppender=new LogbackRollingFileAppender();
         rollingFileAppender.setContext(context);
         rollingFileAppender.setFile(path+fileName+".log");
         rollingFileAppender.setEncoder(layoutEncoder);

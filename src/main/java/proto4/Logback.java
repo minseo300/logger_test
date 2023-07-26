@@ -62,7 +62,7 @@ public class Logback implements Mlf4j {
         }
 
 
-        RollingFileAppender logFileAppender=logbackFactory.create(fileName,loggerName,appenderName,additivity,params,formatter,context);
+        LogbackRollingFileAppender logFileAppender=logbackFactory.create(fileName,loggerName,appenderName,additivity,params,formatter,context);
 
         this.logger=(Logger) LoggerFactory.getLogger(loggerName);
         this.logger.setAdditive(additivity);
@@ -150,7 +150,7 @@ public class Logback implements Mlf4j {
 //                throw new RuntimeException(e);
 //            }
 //        }
-        format=getMsg(format);
+//        format=getMsg(format);
         logger.info(format,arguments);
     }
 
