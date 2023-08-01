@@ -6,6 +6,7 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.classic.util.DefaultJoranConfigurator;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.Layout;
@@ -24,6 +25,7 @@ import sun.rmi.runtime.Log;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Time;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,7 +70,6 @@ public class Logback implements Mlf4j {
         this.logger=(Logger) LoggerFactory.getLogger(loggerName);
         this.logger.setAdditive(additivity);
         this.logger.setLevel(level);
-
         if(async){
             String FQCN = ch.qos.logback.classic.Logger.class.getName();
             LogbackAsyncAppender asyncAppender=new LogbackAsyncAppender(FQCN,logger,level);

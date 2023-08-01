@@ -101,9 +101,10 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         long now=System.currentTimeMillis();
         //////////////////////////////////////////////////////////////
         Date dateOfElapsedPeriod = new Date();
-        cal.setTime(dateOfElapsedPeriod);
-        dateOfElapsedPeriod=getExactFileName();
+//        cal.setTime(dateOfElapsedPeriod);
+        dateOfElapsedPeriod=getExactFileName(intervalUnit, -1,dateOfElapsedPeriod);
         System.out.println(dateOfElapsedPeriod);
+        System.out.println("NOW: "+dateOfElapsedPeriod);
         addInfo("Elapsed period: " + dateOfElapsedPeriod);
         elapsedPeriodsFileName = fileNamePattern.convert(dateOfElapsedPeriod);
         renameUtil.rename(getActiveFileName(),elapsedPeriodsFileName);
@@ -119,28 +120,29 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         ExecutorService executorService = context.getScheduledExecutorService();
         Future<?> future = executorService.submit(runnable);
     }
-    private Date getExactFileName(){
+    private Date getExactFileName(String unit, int amount, Date date){
         Date result;
-        switch (intervalUnit) {
+        cal.setTime(date);
+        switch (unit) {
             case "d":
             case "D":
             case "day":
-                cal.add(Calendar.DATE,-1);
+                cal.add(Calendar.DATE,amount);
                 break;
             case "h":
             case "H":
             case "hour":
-                cal.add(Calendar.HOUR,-1);
+                cal.add(Calendar.HOUR,amount);
                 break;
             case "m":
             case "M":
             case "minute":
-                cal.add(Calendar.MINUTE,-1);
+                cal.add(Calendar.MINUTE,amount);
                 break;
             case "s":
             case "S":
             case "second":
-                cal.add(Calendar.SECOND,-1);
+                cal.add(Calendar.SECOND,amount);
                 break;
         }
         result=cal.getTime();
@@ -168,32 +170,37 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
             this.timeIndexLength=e-s;
         }
         private long getFileTimeByName(String fileName) {
-            System.out.println("[getFileTimeByName] "+fileName.length());
             int end=fileName.lastIndexOf(".log");
-            System.out.println("================================");
             fileName=fileName.substring(end-timeIndexLength,end);
-            System.out.println("fileTime: "+fileName);
 
             long ret=0L;
             SimpleDateFormat dateFormat = null;
-
             try {
-                if(fileName.length()==13) {
-                    dateFormat = new SimpleDateFormat("yyMMdd_HHmmss");
-                } else if(fileName.length() == 11) {
-                    dateFormat = new SimpleDateFormat("yyMMdd_HHmm");
-                } else if(fileName.length() == 9) {
-                    dateFormat = new SimpleDateFormat("yyMMdd_HH");
-                } else if(fileName.length() == 6) {
-                    dateFormat = new SimpleDateFormat("yyMMdd");
+                switch (intervalUnit.toUpperCase()) {
+                    case "D":
+                    case "DAY":
+                        dateFormat = new SimpleDateFormat("yyMMdd");
+                        break;
+                    case "H":
+                    case "HOUR":
+                        dateFormat = new SimpleDateFormat("yyMMdd_HH");
+                        break;
+                    case "M":
+                    case "MINUTE":
+                        dateFormat = new SimpleDateFormat("yyMMdd_HHmm");
+                        break;
+                    case "S":
+                    case "SECOND":
+                        dateFormat = new SimpleDateFormat("yyMMdd_HHmmss");
+                        break;
                 }
+                Date fileTime = dateFormat.parse(fileName);
+                ret = getExactFileName(intervalUnit, 1,fileTime).getTime();
 
-                ret=dateFormat.parse(fileName).getTime();
                 System.out.println("ret: "+ret);
             } catch (ParseException e) {
                 addError(e.getMessage());
             }
-
             return ret;
         }
         private void periodByFileName(long now) {
@@ -230,18 +237,22 @@ public class LogbackTimeBasedRollingPolicy extends RollingPolicyBase {
         }
         private void deleteByPeriod(long now){
             long fileTime;
-            System.out.println("[periodByFileName]");
+            SimpleDateFormat sf= new SimpleDateFormat("yyyyMMddHHmmss");
             for(File f : fileList) {
+                System.out.println("[NOW] "+sf.format(now));
                 System.out.println("fileName: "+f.getName());
                 try {
                     fileTime=getFileTimeByName(f.getName());
-                    System.out.println("-fileTime: "+fileTime);
+                    System.out.println("-fileTime: "+fileTime+" now: "+now);
+                    System.out.println("-(now-fileTime): "+(now-fileTime));
+                    System.out.println("-deleteByPeriodValue: "+deleteByPeriodValue);
                     if((now - fileTime) >= deleteByPeriodValue) {
                         Files.deleteIfExists(Paths.get(f.getPath()));
                     }
                 } catch (IOException e){
                     addError(e.getMessage());
                 }
+                System.out.println("==================================");
             }
 
         }

@@ -18,7 +18,8 @@ public class Main {
         Logger1 logger1=Logger1.getLogger();
         for(int i=0;i<1000;i++)
         {
-            logger1.info("Rolling file appender example... {}",Integer.valueOf(i));
+//            logger1.info("Rolling file appender example... {}",Integer.valueOf(i));
+            logger1.info("log4j2");
             try{
                 Thread.sleep(300);
             }

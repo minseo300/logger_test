@@ -175,6 +175,7 @@ public class Log4j2 implements Mlf4j {
 
     @Override
     public void info(String format, Object... arguments) {
+        logger.info(String.valueOf(logger.getClass()));
         logger.info(format,arguments);
     }
 

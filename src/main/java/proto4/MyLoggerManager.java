@@ -30,10 +30,10 @@ public class MyLoggerManager {
         MyLoggerType my=new MyLoggerType();
         my.setType("logback");
         List<Loggers> loggers=new ArrayList<>();
-//        Loggers loggers1=new Loggers("log4j2","Logger1",false,"","/Users/iminseo/Desktop/logs/","","time","5", "",true,"minute","2","1Kb","INFO");
-        Loggers loggers1=new Loggers("logback","Logger1",true,"","/Users/iminseo/Desktop/logs/","","time","5", "10s",true,"second","5","1Kb","INFO");
+//        Loggers loggers1=new Loggers("log4j2","Logger1",false,"","/Users/iminseo/Desktop/logs/","","time","5", "3m",true,"minute","2","1Kb","INFO");
+        Loggers loggers1=new Loggers("logback","Logger1",false,"","/Users/iminseo/Desktop/logs/","","time","5", "10s",true,"second","5","1Kb","INFO");
 
-        Loggers loggers2=new Loggers("log4j2","Logger2",false,"TestMessageFormatter","/Users/iminseo/Desktop/logs/","","time","","20s",false,"second","","","INFO");
+        Loggers loggers2=new Loggers("log4j2","Logger2",false,"TestMessageFormatter","/Users/iminseo/Desktop/logs/","","time","","3m",false,"minute","1","","INFO");
         loggers.add(loggers1);
         loggers.add(loggers2);
         my.setLoggersList(loggers);
