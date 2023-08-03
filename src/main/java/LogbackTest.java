@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 public class LogbackTest {
-
+    Logger logger;
     public static void main(String[] args) throws JoranException {
         Logger logger = (Logger) LoggerFactory.getLogger(LogbackTest.class);
         logger.info("hi");
@@ -35,15 +35,18 @@ public class LogbackTest {
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
         JoranConfigurator configurator = new JoranConfigurator();
         configurator.setContext(context);
-        String configurationFile = "C:\\Users\\Tmax\\Desktop\\logger_test\\target\\classes\\logback.xml";
+        String configurationFile = "/Users/iminseo/Desktop/JAVA/logger_test/target/classes/logback.xml";
         configurator.doConfigure(configurationFile);
 
         InterpretationContext ic = configurator.getInterpretationContext();
         Map<String, Object> objectMap = ic.getObjectMap();
-        for( String strKey : objectMap.keySet() ){
-            Object strValue = objectMap.get(strKey);
-            System.out.println( strKey +":"+ strValue);
+        Map<String, Appender> appenderMap = (Map<String, Appender>) objectMap.get("APPENDER_BAG");
+        for( String strKey : appenderMap.keySet() ){
+            Appender appender = appenderMap.get(strKey);
+            logger.addAppender(appender);
         }
+        logger.setAdditive(false);
+        logger.info("HEELLOOO");
 
 //        LoggerContext logCtx=(LoggerContext) LoggerFactory.getILoggerFactory();
 
