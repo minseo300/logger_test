@@ -5,12 +5,14 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import ch.qos.logback.core.joran.GenericXMLConfigurator;
-import ch.qos.logback.core.joran.JoranConstants;
+//import ch.qos.logback.core.joran.GenericXMLConfigurator;
+//import ch.qos.logback.core.joran.JoranConstants;
+//import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.joran.spi.RuleStore;
-import ch.qos.logback.core.joran.spi.SaxEventInterpreter;
-import ch.qos.logback.core.model.processor.ModelInterpretationContext;
+//import ch.qos.logback.core.joran.spi.SaxEventInterpreter;
+//import ch.qos.logback.core.model.processor.ModelInterpretationContext;
 import ch.qos.logback.core.rolling.*;
 import ch.qos.logback.core.util.FileSize;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class LogbackTest {
@@ -35,11 +38,11 @@ public class LogbackTest {
         String configurationFile = "C:\\Users\\Tmax\\Desktop\\logger_test\\target\\classes\\logback.xml";
         configurator.doConfigure(configurationFile);
 
-        ModelInterpretationContext mic = configurator.getModelInterpretationContext(); ;
-        Map<String, Appender> appenderBag = (Map<String, Appender>) mic.getObjectMap().get(JoranConstants.APPENDER_BAG);
-        for( String appenderName : appenderBag.keySet() ){
-            Appender appender = appenderBag.get(appenderName);
-            System.out.println( appenderName +":"+ appender.getName()+" - "+appender.getClass() );
+        InterpretationContext ic = configurator.getInterpretationContext();
+        Map<String, Object> objectMap = ic.getObjectMap();
+        for( String strKey : objectMap.keySet() ){
+            Object strValue = objectMap.get(strKey);
+            System.out.println( strKey +":"+ strValue);
         }
 
 //        LoggerContext logCtx=(LoggerContext) LoggerFactory.getILoggerFactory();
