@@ -4,6 +4,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.util.ContextInitializer;
 import ch.qos.logback.core.Appender;
 //import ch.qos.logback.core.joran.GenericXMLConfigurator;
 //import ch.qos.logback.core.joran.JoranConstants;
@@ -21,6 +22,7 @@ import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
+import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -35,8 +37,9 @@ public class LogbackTest {
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
         JoranConfigurator configurator = new JoranConfigurator();
         configurator.setContext(context);
-        String configurationFile = "/Users/iminseo/Desktop/JAVA/logger_test/target/classes/logback.xml";
-        configurator.doConfigure(configurationFile);
+        ContextInitializer ci = new ContextInitializer(context);
+        URL url = ci.findURLOfDefaultConfigurationFile(true);
+        configurator.doConfigure(url);
 
         InterpretationContext ic = configurator.getInterpretationContext();
         Map<String, Object> objectMap = ic.getObjectMap();
