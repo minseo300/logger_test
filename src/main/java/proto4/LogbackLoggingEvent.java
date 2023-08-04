@@ -22,7 +22,7 @@ public class LogbackLoggingEvent extends LoggingEvent {
     }
 
     private void setPrePostMessage(){
-        guid="11111111111111111111111111";
-        logDebug = " (qwerqwerqwerqwer)";
+        guid="neeeeeeeew";
+        logDebug = " (gooooodo)";
     }
 }

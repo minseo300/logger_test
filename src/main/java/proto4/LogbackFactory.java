@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class LogbackFactory {
 
-    public LogbackRollingFileAppender create(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params,String formatter,LoggerContext context){
+    public RollingFileAppender create(String fileName, String loggerName, String appenderName, Boolean additivity, Loggers params,String formatter,LoggerContext context){
         String path = params.getPath();
         String timeBasePolicyUnit=params.getTimeBasePolicyUnit();
         String rollingPolicy=params.getRollingPolicy();
@@ -27,10 +27,10 @@ public class LogbackFactory {
         String limitRollingFileNumber=params.getLimitRollingFileNumber();
 
         // create PatternLayoutEncoder
-        PatternLayoutEncoder layoutEncoder=createLayoutEncoder(context);
+        LogbackPatternLayoutEncoder layoutEncoder=createLayoutEncoder(context);
 
         // create RollingFileAppender
-        LogbackRollingFileAppender rollingFileAppender=new LogbackRollingFileAppender();
+        RollingFileAppender rollingFileAppender=new RollingFileAppender();
         rollingFileAppender.setContext(context);
         rollingFileAppender.setFile(path+fileName+".log");
         rollingFileAppender.setEncoder(layoutEncoder);
@@ -81,7 +81,7 @@ public class LogbackFactory {
 
         return rollingPolicyBase;
     }
-    public PatternLayoutEncoder createLayoutEncoder(LoggerContext context){
+    public LogbackPatternLayoutEncoder createLayoutEncoder(LoggerContext context){
         Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
         if (ruleRegistry == null) {
             ruleRegistry = new HashMap<String, String>();
@@ -96,7 +96,7 @@ public class LogbackFactory {
         ruleRegistry.put(conversionWord2, converterClass2);
 
 
-        PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
+        LogbackPatternLayoutEncoder logEncoder = new LogbackPatternLayoutEncoder();
         String layoutPattern = "%d{yyyy-MM-dd HH:mm:ss.SSS} %guid [%t] %c{1} - %msg %-6stack\n"; // your pattern here.
 //        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"; // your pattern here
         logEncoder.setPattern(layoutPattern);

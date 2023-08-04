@@ -65,7 +65,7 @@ public class Logback implements Mlf4j {
         }
 
 
-        LogbackRollingFileAppender logFileAppender=logbackFactory.create(fileName,loggerName,appenderName,additivity,params,formatter,context);
+        RollingFileAppender logFileAppender=logbackFactory.create(fileName,loggerName,appenderName,additivity,params,formatter,context);
 
         this.logger=(Logger) LoggerFactory.getLogger(loggerName);
         this.logger.setAdditive(additivity);
