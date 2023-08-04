@@ -9,6 +9,7 @@ import ch.qos.logback.core.Appender;
 //import ch.qos.logback.core.joran.GenericXMLConfigurator;
 //import ch.qos.logback.core.joran.JoranConstants;
 //import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.joran.spi.InterpretationContext;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.joran.spi.RuleStore;
@@ -33,23 +34,28 @@ public class LogbackTest {
     public static void main(String[] args) throws JoranException {
         Logger logger = (Logger) LoggerFactory.getLogger(LogbackTest.class);
         logger.info("hi");
-
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        JoranConfigurator configurator = new JoranConfigurator();
-        configurator.setContext(context);
-        ContextInitializer ci = new ContextInitializer(context);
-        URL url = ci.findURLOfDefaultConfigurationFile(true);
-        configurator.doConfigure(url);
+        context.removeObject(CoreConstants.FA_FILENAME_COLLISION_MAP);
+        Map<String, String> map = (Map<String, String>) context.getObject(CoreConstants.FA_FILENAME_COLLISION_MAP);
+//        Appender appender = (Appender) context.getObject("Console");
 
-        InterpretationContext ic = configurator.getInterpretationContext();
-        Map<String, Object> objectMap = ic.getObjectMap();
-        Map<String, Appender> appenderMap = (Map<String, Appender>) objectMap.get("APPENDER_BAG");
-        for( String strKey : appenderMap.keySet() ){
-            Appender appender = appenderMap.get(strKey);
-            logger.addAppender(appender);
-        }
-        logger.setAdditive(false);
-        logger.info("HEELLOOO");
+
+//        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+//        JoranConfigurator configurator = new JoranConfigurator();
+//        configurator.setContext(context);
+//        ContextInitializer ci = new ContextInitializer(context);
+//        URL url = ci.findURLOfDefaultConfigurationFile(true);
+//        configurator.doConfigure(url);
+//
+//        InterpretationContext ic = configurator.getInterpretationContext();
+//        Map<String, Object> objectMap = ic.getObjectMap();
+//        Map<String, Appender> appenderMap = (Map<String, Appender>) objectMap.get("APPENDER_BAG");
+//        for( String strKey : appenderMap.keySet() ){
+//            Appender appender = appenderMap.get(strKey);
+//            logger.addAppender(appender);
+//        }
+//        logger.setAdditive(false);
+//        logger.info("HEELLOOO");
 
 //        LoggerContext logCtx=(LoggerContext) LoggerFactory.getILoggerFactory();
 
