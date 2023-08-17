@@ -3,45 +3,52 @@
         targetNamespace="http://www.example.org/sqlmap"
         xmlns:tns="http://www.example.org/sqlmap"
         elementFormDefault="qualified">
-    <element name="myLog" type="MyLogType"/>
-    <complexType name="MyLogType">
+    <element name="proobjectLog" type="ProObjectLogType"/>
+    <complexType name="ProObjectLogType">
         <sequence>
             <element name="loggers" type="LoggersType"/>
+            <element name="appenders" type="AppendersType"/>
         </sequence>
     </complexType>
-    <complexType name="LoggersType">
+    <complexType name="AppendersType">
         <sequence>
-            <element name="logger1" type="Logger1Parameter" minOccurs="0" maxOccurs="1"/>
-            <element name="logger2" type="Logger2Parameter" minOccurs="0" maxOccurs="1"/>
+            <element name="appender" type="AppenderType" minOccurs="0" maxOccurs="unbounded"/>
         </sequence>
     </complexType>
-    <complexType name="MyLoggerParameter">
+    <complexType name="AppenderType">
         <sequence>
-            <element name="level" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="async" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="path" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="formatter" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="layoutPattern" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="rollingPolicy" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="sizeBasePolicyValue" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="timeBasePolicyUnit" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="timeBasePolicyValue" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="limitRollingFileNumber" type="string" minOccurs="0" maxOccurs="1"/>
-            <element name="deleteRollingFilePeriod" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="name" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="database" type="DatabaseParameter" minOccurs="0" maxOccurs="1"/>
         </sequence>
     </complexType>
-    <complexType name="Logger1Parameter">
-        <complexContent>
-            <extension base="MyLoggerParameter">
-                <sequence>
-                    <element name="logDebugEnable" type="string" minOccurs="0" maxOccurs="1"/>
-                </sequence>
-            </extension>
-        </complexContent>
+    <complexType name="DatabaseParameter">
+        <sequence>
+            <element name="columns" type="ColumnsParameter" minOccurs="0" maxOccurs="1"/>
+            <element name="datasource" type="DataSourceParameter" minOccurs="0" maxOccurs="1"/>
+            <element name="jndi" type="JNDIParameter" minOccurs="0" maxOccurs="1"/>
+        </sequence>
     </complexType>
-    <complexType name="Logger2Parameter">
-        <complexContent>
-            <extension base="MyLoggerParameter"></extension>
-        </complexContent>
+    <complexType name="ColumnsParameter">
+        <sequence>
+            <element name="logDate" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="logLevel" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="message" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="loggerName" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="logID" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="exception" type="string" minOccurs="0" maxOccurs="1"/>
+        </sequence>
+    </complexType>
+    <complexType name="DataSourceParameter">
+        <sequence>
+            <element name="user" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="password" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="driver" type="string" minOccurs="0" maxOccurs="1"/>
+            <element name="url" type="string" minOccurs="0" maxOccurs="1"/>
+        </sequence>
+    </complexType>
+    <complexType name="JNDIParameter">
+        <sequence>
+            <element name="location" type="string" minOccurs="0" maxOccurs="1"/>
+        </sequence>
     </complexType>
 </schema>
