@@ -3,6 +3,7 @@ package dbappender_proto;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import javax.sql.DataSource;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
@@ -11,7 +12,7 @@ import java.util.Properties;
 
 public class LogConnectionPool {
     private static HikariConfig config = new HikariConfig();
-    private static HikariDataSource ds;
+    public static HikariDataSource ds;
     private static LogConnectionPool instance = null;
 
     public LogConnectionPool(String url, String driver, String user, String password) {
@@ -22,6 +23,7 @@ public class LogConnectionPool {
         config.setDriverClassName(driver);
 
         ds = new HikariDataSource(config);
+
     }
 
     public static Connection getConnection() {
@@ -37,4 +39,5 @@ public class LogConnectionPool {
     public static LogConnectionPool getInstance() {
         return instance;
     }
+
 }

@@ -3,6 +3,8 @@ package dbappender_proto.sqlDialect;
 
 import dbappender_proto.LoggerConfigInfo;
 
+import java.util.Map;
+
 public class DB2Dialect implements CustomSQLDialect {
     @Override
     public String getSelectInsertId() {
@@ -16,6 +18,16 @@ public class DB2Dialect implements CustomSQLDialect {
 
     @Override
     public String createTableSQL(String tableName, LoggerConfigInfo loggerConfigInfo) {
+        return null;
+    }
+
+    @Override
+    public String getInsertSQL() {
+        return null;
+    }
+
+    @Override
+    public Map<String, Integer> getIndexMap() {
         return null;
     }
 }

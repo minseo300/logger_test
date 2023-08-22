@@ -14,15 +14,18 @@ public class DBAppenderTest {
         loggerManager.createConnectionPool();
         loggerManager.checkTableExist();
 
-        String loggingFramework = "log4j2";
-
-
+        String loggingFramework = "logback";
 
         if (loggingFramework.equals("log4j2")) {
             log4j2Factory.createLogger(loggerConfigInfo);
-            log4j2Factory.info("TEST1");
+            for(int i=0; i<100 ; i++) {
+                log4j2Factory.info("TEST"+i);
+            }
         } else {
-            logbackFactory.configDBAppender();
+            logbackFactory.createLogger(loggerConfigInfo,loggerManager.getDialect());
+            for(int i=0 ; i<100 ; i++) {
+                logbackFactory.logger.info("logbackTEST {}",i);
+            }
         }
     }
 }

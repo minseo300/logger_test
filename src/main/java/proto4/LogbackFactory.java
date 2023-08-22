@@ -98,7 +98,7 @@
 //
 //        LogbackPatternLayoutEncoder logEncoder = new LogbackPatternLayoutEncoder();
 //        String layoutPattern = "%d{yyyy-MM-dd HH:mm:ss.SSS} %guid [%t] %c{1} - %msg %-6stack\n"; // your pattern here.
-////        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"; // your pattern here
+//        String layoutPattern = "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"; // your pattern here
 //        logEncoder.setPattern(layoutPattern);
 //
 //        logEncoder.setContext(context);

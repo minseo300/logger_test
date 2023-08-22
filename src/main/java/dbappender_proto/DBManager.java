@@ -19,6 +19,7 @@ public class DBManager {
     public DBManager(LoggerConfigInfo loggerConfigInfo) {
         this.loggerConfigInfo = loggerConfigInfo;
     }
+
     public void createConnectionPool(){
         Properties properties = new Properties();
         String url = null, driver = null, user = null, password = null, appenderName=null;
@@ -56,5 +57,8 @@ public class DBManager {
                 System.out.println(e.getMessage());
             }
         }
+    }
+    public CustomSQLDialect getDialect() {
+        return this.dialect;
     }
 }
