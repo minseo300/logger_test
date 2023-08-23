@@ -54,6 +54,7 @@ public class AppenderManager {
 
     private void createTable() {
         String createTableSQL = info.sqlDialect.getCreateTableQuery(info.tableName);
+        System.out.println(createTableSQL);
         Connection connection = ConnectionPool.getConnection();
         Statement statement = null;
         try {

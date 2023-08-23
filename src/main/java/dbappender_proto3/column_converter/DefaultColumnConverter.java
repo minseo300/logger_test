@@ -6,17 +6,17 @@ public class DefaultColumnConverter implements ColumnConverter {
     }
     @Override
     public String getLevelColumnName() {
-        return "LEVEL";
+        return "LOG_LEVEL";
     }
 
     @Override
     public String getThreadColumnName() {
-        return "THREAD";
+        return "THREAD_NAME";
     }
 
     @Override
     public String getLoggerColumnName() {
-        return "LOGGER";
+        return "LOGGER_NAME";
     }
 
     @Override
