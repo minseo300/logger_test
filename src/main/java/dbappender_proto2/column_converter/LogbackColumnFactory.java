@@ -3,16 +3,22 @@ package dbappender_proto2.column_converter;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
-import dbappender_proto2.Info;
+import ch.qos.logback.core.pattern.Converter;
+import ch.qos.logback.core.pattern.parser.Node;
+import ch.qos.logback.core.pattern.parser.Parser;
+import ch.qos.logback.core.spi.ScanException;
+import dbappender_proto3.Info;
+import dbappender_proto3.column_converter.ColumnConverter;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class LogbackColumnFactory implements ColumnFactory{
-    private List<String> columnList = new ArrayList<>();
     private Map<String, Map<String, Integer>> patternIndexMap = new HashMap<>();
     private Map<String, Map<String, String>> columnPatternMap = new HashMap<>();
+
+
     public Map<String, String> getColumnPatternMap(String tableName) {
         return columnPatternMap.get(tableName);
     }
@@ -20,7 +26,8 @@ public class LogbackColumnFactory implements ColumnFactory{
     public Map<String, Integer> getPatternIndexMap(String tableName) {
         return patternIndexMap.get(tableName);
     }
-    @Override
+
+
     public void mappingColumn(String pattern, String tableName) {
         List<String> patterns = new ArrayList<>(Arrays.asList(pattern.split("%")));
         ColumnConverter columnConverter = Info.getInstance().columnConverter;
@@ -72,7 +79,6 @@ public class LogbackColumnFactory implements ColumnFactory{
             cpMap.put(columnName,p);
 //            ciList.add(new ColumnIndex(columnName, index++));
 //            cpList.add(new ColumnPattern(columnName,p));
-            columnList.add(columnName);
         }
         patternIndexMap.put(tableName,piMap);
         columnPatternMap.put(tableName,cpMap);
