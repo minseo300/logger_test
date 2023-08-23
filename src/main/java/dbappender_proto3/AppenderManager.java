@@ -22,7 +22,7 @@ public class AppenderManager {
     private static AppenderManager appenderManager = new AppenderManager();
 
     private AppenderManager() {
-        if(info.framework.equals("logback")){
+         if(info.framework.equals("logback")){
             columnFactory = new LogbackColumnFactory();
         } else {
             columnFactory = new Log4j2ColumnFactory();
@@ -39,13 +39,13 @@ public class AppenderManager {
         return appenderRegistry.get(appenderName);
     }
     public void createAppender() {
-//        info.sqlDialect.createTableQuery(info.tableName, columnFactory.getColumnNameList(info.tableName));
-//        info.sqlDialect.createInsertSQL(info.tableName, columnFactory.getColumnNameList(info.tableName));
+        info.sqlDialect.createTableQuery(info.tableName, columnFactory.getColumnNameList(info.tableName));
+        info.sqlDialect.createInsertSQL(info.tableName, columnFactory.getColumnNameList(info.tableName));
+        createTable();
 
-//        createTable();
         Object appender = null;
         if (info.framework.equals("log4j2")) {
-            appender = log4j2Factory.createDBAppender();
+            appender = log4j2Factory.createDBAppender((Log4j2ColumnFactory) columnFactory);
         } else if(info.framework.equals("logback")){
             appender = logbackFactory.createDBAppender((LogbackColumnFactory) columnFactory);
         }

@@ -15,7 +15,9 @@ public class Main {
             }
         } else {
             am.log4j2Factory.createLogger((JdbcAppender) am.getAppenderRegistry().get(info.appenderName));
-            am.log4j2Factory.logger.info("log4j2");
+            for (int i=0;i<50;i++) {
+                am.log4j2Factory.logger.info("log4j2: {}",i);
+            }
         }
     }
 }

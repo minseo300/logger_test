@@ -79,7 +79,7 @@ public class LogbackColumnFactory implements ColumnFactory {
                 index = DATE_INDEX;
             } else if (c instanceof RelativeTimeConverter) {
                 ((RelativeTimeConverter) c).start();
-                columnName = columnConverter.getDateColumnName();
+                columnName = columnConverter.getDateColumnName(); // TODO
                 index = RELATIVE_TIME_INDEX;
             } else if (c instanceof LevelConverter) {
                 ((LevelConverter) c).start();
@@ -138,16 +138,13 @@ public class LogbackColumnFactory implements ColumnFactory {
                 index = PROPERTY_INDEX;
             }
             columnDataMap.put(c, index);
-//            columnNameList.add(columnName);
             columnNameIndexMap.put(columnName, index);
             columnNameArr[index] = columnName;
             converterArr[index] = c;
         }
-//        tableQueryDataMap.put(tableName, columnDataMap);
-//        tableColumnMap.put(tableName,columnNameIndexMap);
+
         tableQueryDataMap.put(tableName, Arrays.asList(Arrays.stream(converterArr).toArray()));
         tableColumnMap.put(tableName, Arrays.asList(columnNameArr));
-        int d = 1;
     }
 
     @Override
