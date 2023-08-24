@@ -94,6 +94,14 @@
             <version>11.2.0.4</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.ibm.db2/jcc -->
+        <dependency>
+            <groupId>com.ibm.db2</groupId>
+            <artifactId>jcc</artifactId>
+            <version>11.5.8.0</version>
+        </dependency>
+
+
 
 
     </dependencies>

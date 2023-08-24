@@ -5,6 +5,7 @@ package dbappender_proto3;
 import dbappender_proto3.column_converter.ColumnConverter;
 import dbappender_proto3.column_converter.DefaultColumnConverter;
 import dbappender_proto3.sqlDialect.CustomSQLDialect;
+import dbappender_proto3.sqlDialect.DB2Dialect;
 import dbappender_proto3.sqlDialect.MySQLDialect;
 import dbappender_proto3.sqlDialect.OracleDialect;
 
@@ -38,6 +39,8 @@ public class Info {
                 sqlDialect = new MySQLDialect();
             } else if (driver.contains("oracle")) {
                 sqlDialect = new OracleDialect();
+            } else if (driver.contains("db2")) {
+                sqlDialect = new DB2Dialect();
             }
             tableName = properties.getProperty("tableName");
             appenderName = properties.getProperty("appenderName");

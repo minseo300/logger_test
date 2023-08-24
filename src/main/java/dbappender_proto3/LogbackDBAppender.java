@@ -19,7 +19,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class LogbackDBAppender extends DBAppenderBase<ILoggingEvent> {
+public class LogbackDBAppender extends LogbackDBAppenderBase<ILoggingEvent> {
     protected String insertPropertiesSQL;
     protected String insertExceptionSQL;
     protected String insertSQL;

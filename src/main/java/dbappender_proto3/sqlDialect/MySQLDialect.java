@@ -49,7 +49,7 @@ public class MySQLDialect implements CustomSQLDialect {
     public void createInsertSQL(String tableName, List<String> columnNameList) {
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO ");
         sqlBuilder.append(tableName).append(" (");
-        for (int i = 1; i < columnNameList.size() ; i++){
+        for (int i = 1; i < columnNameList.size() ; i++) {
             sqlBuilder.append(columnNameList.get(i)).append(", ");
         }
         sqlBuilder.delete(sqlBuilder.length()-2,sqlBuilder.length());
