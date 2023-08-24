@@ -23,7 +23,7 @@ public class MySQLDialect implements CustomSQLDialect {
         sqlBuilder.append("CREATE TABLE IF NOT EXISTS ");
         sqlBuilder.append(tableName);
         sqlBuilder.append(" (");
-        for (int i = 1 ; i <columnNameList.size() ; i++) {
+        for (int i = 0 ; i <columnNameList.size() ; i++) {
             sqlBuilder.append(columnNameList.get(i));
             sqlBuilder.append(" VARCHAR(254), ");
         }
@@ -49,12 +49,12 @@ public class MySQLDialect implements CustomSQLDialect {
     public void createInsertSQL(String tableName, List<String> columnNameList) {
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO ");
         sqlBuilder.append(tableName).append(" (");
-        for (int i = 1; i < columnNameList.size() ; i++) {
+        for (int i = 0; i < columnNameList.size() ; i++) {
             sqlBuilder.append(columnNameList.get(i)).append(", ");
         }
         sqlBuilder.delete(sqlBuilder.length()-2,sqlBuilder.length());
         sqlBuilder.append(") VALUES (");
-        for (int i = 1; i < columnNameList.size() ; i++) {
+        for (int i = 0; i < columnNameList.size() ; i++) {
             sqlBuilder.append("?, ");
         }
         sqlBuilder.delete(sqlBuilder.length()-2,sqlBuilder.length());

@@ -35,10 +35,10 @@ public class Log4j2Factory {
     public JdbcAppender createDBAppender(Log4j2ColumnFactory columnFactory) {
         JdbcAppender.Builder builder = JdbcAppender.newBuilder();
         ConnectionSource connectionSource = FactoryMethodConnectionSource.createConnectionSource("dbappender_proto3.ConnectionPool","getConnection");
-        List<Object> converterList = columnFactory.getConverterList(info.tableName);
-        ColumnConfig[] columnConfigs = new ColumnConfig[converterList.size()-1];
-        for (int i=1 ; i< converterList.size() ; i++){
-            columnConfigs[i-1] = (ColumnConfig) converterList.get(i);
+        List<Object> converterList = (List<Object>) columnFactory.getConverterList(info.tableName).get(0);
+        ColumnConfig[] columnConfigs = new ColumnConfig[converterList.size()];
+        for (int i=0 ; i< converterList.size() ; i++){
+            columnConfigs[i] = (ColumnConfig) converterList.get(i);
         }
         builder.setName(info.appenderName);
         builder.setColumnConfigs(columnConfigs)

@@ -106,11 +106,11 @@ public class LogbackDBAppender extends LogbackDBAppenderBase<ILoggingEvent> {
     }
 
     void bindLoggingEventWithInsertStatement(PreparedStatement stmt, ILoggingEvent event) throws SQLException {
-        List<Object> converterList = logbackColumnFactory.getConverterList(tableName);
+        List<Object> converterList = (List<Object>) logbackColumnFactory.getConverterList(tableName).get(0);
         int index = 0;
         for (Object c : converterList) {
             c = (Converter) c;
-            index = converterList.indexOf(c);
+            index = converterList.indexOf(c) + 1;
             if (c instanceof DateConverter) {
                 String time = ((DateConverter) c).convert(event);
                 stmt.setObject(index, time);
