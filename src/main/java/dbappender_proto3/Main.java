@@ -17,7 +17,12 @@ public class Main {
             am.log4j2Factory.createLogger((JdbcAppender) am.getAppenderRegistry().get(info.appenderName));
             for (int i=0;i<50;i++) {
                 am.log4j2Factory.logger.info("log4j2: {}",i);
-                am.log4j2Factory.throwException();
+                try {
+                    int n1 = 12, n2 = 0;
+                    int ret = n1 / n2;
+                } catch (Exception e) {
+                    am.log4j2Factory.logger.error("exception :{}",e.getMessage(),e);
+                }
             }
         }
     }

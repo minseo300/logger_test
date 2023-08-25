@@ -61,6 +61,8 @@ public class Log4j2ColumnFactory implements ColumnFactory {
                 p += "date{"+option+"}";
             } else if (converter.getName().equals("Throwable")) {
                 String option = String.valueOf(((ThrowablePatternConverter) converter).getOptions());
+                int i = option.indexOf("}");
+                option = option.substring(1,i);
                 columnName = columnConverter.getExceptionColumnName();
 //                index = 1; // TODO
                 p += "throwable{"+option+"}";

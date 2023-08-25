@@ -74,7 +74,7 @@ public class Log4j2Factory {
             int n1 = 12, n2 = 0;
             int ret = n1 / n2;
         } catch (Exception e) {
-            logger.error("exception",e);
+            logger.error("exception :{}",e.getMessage(),e);
         }
     }
 }
