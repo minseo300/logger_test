@@ -52,16 +52,18 @@ public class Log4j2ColumnFactory implements ColumnFactory {
                 columnName = columnConverter.getClassColumnName();
                 p +="class";
             } else if (converter.getName().equals("Date")) {
+                String option = ((DatePatternConverter) converter).getPattern();
                 columnName = columnConverter.getDateColumnName();
 //                columnBuilder.setName(columnName).setEventTimestamp(true).build();
 //                columnConfigArr[index] = columnBuilder.build();
 //                columnNameArr[index] = columnName;
 //                continue;
-                p += "date";
+                p += "date{"+option+"}";
             } else if (converter.getName().equals("Throwable")) {
+                String option = String.valueOf(((ThrowablePatternConverter) converter).getOptions());
                 columnName = columnConverter.getExceptionColumnName();
 //                index = 1; // TODO
-                p += "throwable";
+                p += "throwable{"+option+"}";
             } else if (converter.getName().equals("File Location")) {
                 columnName = columnConverter.getFileColumnName();
                 p += "file";
@@ -83,9 +85,10 @@ public class Log4j2ColumnFactory implements ColumnFactory {
                 columnName = columnConverter.getThreadColumnName();
                 p += "thread";
             }
-            columnBuilder.setName(columnName).setPattern(p).build();
 
-            columnConfigList.add(index, columnBuilder.build());
+            columnBuilder.setName(columnName).setPattern(p).build();
+            ColumnConfig cc = columnBuilder.build();
+            columnConfigList.add(index, cc);
             columnNameList.add(index++, columnName);
         }
 
@@ -102,11 +105,4 @@ public class Log4j2ColumnFactory implements ColumnFactory {
     public List<Object> getConverterList(String tableName) {
         return tableQueryDataMap.get(tableName);
     }
-
-
-
-
-
-
-
 }

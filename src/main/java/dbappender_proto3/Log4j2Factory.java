@@ -68,4 +68,13 @@ public class Log4j2Factory {
 
         this.logger = (Logger) LogManager.getLogger(loggerName);
     }
+
+    public void throwException(){
+        try {
+            int n1 = 12, n2 = 0;
+            int ret = n1 / n2;
+        } catch (Exception e) {
+            logger.error("exception",e);
+        }
+    }
 }
