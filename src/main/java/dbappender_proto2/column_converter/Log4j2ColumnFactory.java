@@ -22,7 +22,6 @@ public class Log4j2ColumnFactory implements ColumnFactory{
         PatternLayout pl = PatternLayout.newBuilder().withPattern(pattern).build();
         PatternParser parser = PatternLayout.createPatternParser(configuration);
         List<PatternFormatter> formatters = parser.parse(pattern);
-
     }
 
     @Override

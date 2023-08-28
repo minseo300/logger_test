@@ -2,7 +2,8 @@ package dbappender_proto3.column_converter;
 
 public class DefaultColumnConverter implements ColumnConverter {
     @Override
-    public String getDateColumnName() { return "LOG_DATE";
+    public String getDateColumnName() {
+        return "LOG_DATE";
     }
     @Override
     public String getLevelColumnName() {
@@ -67,5 +68,10 @@ public class DefaultColumnConverter implements ColumnConverter {
     @Override
     public String getLogDebugColumnName() {
         return "LOG_DEBUG";
+    }
+
+    @Override
+    public String getLogIdName() {
+        return "LOG_ID";
     }
 }

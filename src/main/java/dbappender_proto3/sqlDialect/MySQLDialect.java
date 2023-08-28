@@ -1,11 +1,14 @@
 package dbappender_proto3.sqlDialect;
 
+import dbappender_proto3.column_converter.ColumnConverter;
+
 import java.util.*;
 
 public class MySQLDialect implements CustomSQLDialect {
 
     private Map<String, String> insertQueryMap = new HashMap<>();
-    private Map<String, String> createQueryMap = new HashMap<>();
+    private Map<String, List<String>> createQueryMap = new HashMap<>();
+    private Map<String, ColumnConverter> columnConverterMap = new HashMap<>();
 
     @Override
     public String getSelectInsertId() {
@@ -19,6 +22,7 @@ public class MySQLDialect implements CustomSQLDialect {
 
     @Override
     public void createTableQuery(String tableName, List<String> columnNameList) {
+        List<String> forCreateTable = new ArrayList<>();
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("CREATE TABLE IF NOT EXISTS ");
         sqlBuilder.append(tableName);
@@ -27,14 +31,19 @@ public class MySQLDialect implements CustomSQLDialect {
             sqlBuilder.append(columnNameList.get(i));
             sqlBuilder.append(" VARCHAR(254), ");
         }
-        sqlBuilder.append("ID BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY);");
+        ColumnConverter columnConverter = columnConverterMap.get(tableName);
+        if (columnConverter.getLogIdName() != null) {
+            sqlBuilder.append(columnConverter.getLogIdName());
+            sqlBuilder.append(" BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY);");
+        }
         String createTableQuery = sqlBuilder.toString();
-        createQueryMap.put(tableName,createTableQuery);
+        forCreateTable.add(createTableQuery);
+        createQueryMap.put(tableName,forCreateTable);
     }
 
     @Override
-    public String getCreateTableQuery(String tableName) {
-        String createQuery = createQueryMap.get(tableName);
+    public List<String> getCreateTableQuery(String tableName) {
+        List<String> createQuery = createQueryMap.get(tableName);
         return createQuery;
     }
 
@@ -61,5 +70,11 @@ public class MySQLDialect implements CustomSQLDialect {
         sqlBuilder.append(")");
         insertQueryMap.put(tableName,sqlBuilder.toString());
     }
+
+    @Override
+    public void registerColumnConverter(String tableName, ColumnConverter converter) {
+        columnConverterMap.put(tableName, converter);
+    }
+
 
 }

@@ -15,4 +15,5 @@ public interface ColumnConverter {
     String getCallerColumnName();
     String getGuidColumnName();
     String getLogDebugColumnName();
+    String getLogIdName();
 }

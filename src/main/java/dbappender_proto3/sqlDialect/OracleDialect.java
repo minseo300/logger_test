@@ -1,12 +1,17 @@
 package dbappender_proto3.sqlDialect;
 
+import dbappender_proto3.column_converter.ColumnConverter;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class OracleDialect implements CustomSQLDialect{
     private Map<String, String> insertQueryMap = new HashMap<>();
-    private Map<String, String> createQueryMap = new HashMap<>();
+    private Map<String, List<String>> createQueryMap = new HashMap<>();
+    private Map<String, ColumnConverter> columnConverterMap = new HashMap<>();
+
 
     @Override
     public String getSelectInsertId() {
@@ -20,27 +25,41 @@ public class OracleDialect implements CustomSQLDialect{
 
     @Override
     public void createTableQuery(String tableName, List<String> columnNameList) {
-//        String sequence = "CREATE SEQUENCE "+tableName+"_sequence MINVALUE 1 START WITH 1;";
+        List<String> forCreateTable = new ArrayList<>();
         StringBuilder sqlBuilder = new StringBuilder();
+        StringBuilder sequenceBuilder = new StringBuilder();
         sqlBuilder.append("CREATE TABLE ");
         sqlBuilder.append(tableName);
         sqlBuilder.append(" (");
-        for (int i = 1 ; i <columnNameList.size() ; i++) {
+        for (int i = 0 ; i <columnNameList.size() ; i++) {
             sqlBuilder.append(columnNameList.get(i));
             sqlBuilder.append(" VARCHAR(254), ");
         }
-        sqlBuilder.delete(sqlBuilder.length()-2,sqlBuilder.length());
-        sqlBuilder.append(")");
-//        sqlBuilder.append(" ID NUMBER(10) NOT NULL, ");
-//        sqlBuilder.append("CONSTRAINT ID PRIMARY KEY);");
+        ColumnConverter columnConverter = columnConverterMap.get(tableName);
+        if (columnConverter.getLogIdName() != null) {
+            sequenceBuilder.append("CREATE SEQUENCE SEQ_");
+            sequenceBuilder.append(tableName);
+            sqlBuilder.append(columnConverter.getLogIdName());
+            sqlBuilder.append(" NUMBER(10) NOT NULL,");
+            sqlBuilder.append("CONSTRAINT ");
+            sqlBuilder.append(tableName+"_ID_PK PRIMARY KEY(");
+            sqlBuilder.append(columnConverter.getLogIdName());
+            sqlBuilder.append("))");
+        } else {
+            sqlBuilder.delete(sqlBuilder.length()-2,sqlBuilder.length());
+            sqlBuilder.append(")");
+        }
         String createTableQuery = sqlBuilder.toString();
-        createQueryMap.put(tableName,createTableQuery);
+        String sequencePKQuery = sequenceBuilder.toString();
+        forCreateTable.add(createTableQuery);
+        forCreateTable.add(sequencePKQuery);
+        createQueryMap.put(tableName,forCreateTable);
     }
 
 
     @Override
-    public String getCreateTableQuery(String tableName) {
-        String createQuery = createQueryMap.get(tableName);
+    public List<String> getCreateTableQuery(String tableName) {
+        List<String> createQuery = createQueryMap.get(tableName);
         return createQuery;
     }
 
@@ -53,6 +72,7 @@ public class OracleDialect implements CustomSQLDialect{
 
     @Override
     public void createInsertSQL(String tableName, List<String> columnNameList) {
+        ColumnConverter columnConverter = columnConverterMap.get(tableName);
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO ");
         sqlBuilder.append(tableName).append(" (");
         for (int i = 1; i < columnNameList.size() ; i++){
@@ -63,8 +83,20 @@ public class OracleDialect implements CustomSQLDialect{
         for (int i = 1; i < columnNameList.size() ; i++) {
             sqlBuilder.append("?, ");
         }
-        sqlBuilder.delete(sqlBuilder.length()-2,sqlBuilder.length());
-        sqlBuilder.append(")");
-        insertQueryMap.put(tableName,sqlBuilder.toString());
+        if (columnConverter.getLogIdName() != null) {
+            sqlBuilder.append("SEQ_");
+            sqlBuilder.append(tableName);
+            sqlBuilder.append(".NEXTVAL");
+        } else {
+            sqlBuilder.delete(sqlBuilder.length()-2,sqlBuilder.length());
+            sqlBuilder.append(")");
+        }
+
+        String insertQuery = sqlBuilder.toString();
+        insertQueryMap.put(tableName,insertQuery);
+    }
+    @Override
+    public void registerColumnConverter(String tableName, ColumnConverter converter) {
+        columnConverterMap.put(tableName, converter);
     }
 }

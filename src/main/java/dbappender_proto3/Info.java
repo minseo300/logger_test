@@ -35,13 +35,7 @@ public class Info {
             password = properties.getProperty("password");
             url = properties.getProperty("url");
             driver = properties.getProperty("driver");
-            if (driver.contains("mysql")) {
-                sqlDialect = new MySQLDialect();
-            } else if (driver.contains("oracle")) {
-                sqlDialect = new OracleDialect();
-            } else if (driver.contains("db2")) {
-                sqlDialect = new DB2Dialect();
-            }
+
             tableName = properties.getProperty("tableName");
             appenderName = properties.getProperty("appenderName");
             pattern = properties.getProperty("pattern");
@@ -53,6 +47,14 @@ public class Info {
                 Object converterClass = Class.forName(converterClassName).newInstance();
                 columnConverter = (ColumnConverter) converterClass;
             }
+            if (driver.contains("mysql")) {
+                sqlDialect = new MySQLDialect();
+            } else if (driver.contains("oracle")) {
+                sqlDialect = new OracleDialect();
+            } else if (driver.contains("db2")) {
+                sqlDialect = new DB2Dialect();
+            }
+            sqlDialect.registerColumnConverter(tableName, columnConverter);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {

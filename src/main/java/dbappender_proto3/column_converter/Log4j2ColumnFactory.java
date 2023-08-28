@@ -2,6 +2,7 @@ package dbappender_proto3.column_converter;
 
 import ch.qos.logback.core.pattern.Converter;
 import dbappender_proto3.Info;
+import dbappender_proto3.sqlDialect.OracleDialect;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.db.jdbc.ColumnConfig;
@@ -20,7 +21,7 @@ public class Log4j2ColumnFactory implements ColumnFactory {
     private Map<String, List<Object>> tableQueryDataMap = new HashMap<>();
     // 각각의 테이블은 서로 다른 column name들을 가진다;
     private Map<String, List<String>> tableColumnMap = new HashMap<>();
-
+    private Info info = Info.getInstance();
     @Override
     public void mappingColumn(String pattern, String tableName) {
         ColumnConverter columnConverter = Info.getInstance().columnConverter;
@@ -54,10 +55,6 @@ public class Log4j2ColumnFactory implements ColumnFactory {
             } else if (converter.getName().equals("Date")) {
                 String option = ((DatePatternConverter) converter).getPattern();
                 columnName = columnConverter.getDateColumnName();
-//                columnBuilder.setName(columnName).setEventTimestamp(true).build();
-//                columnConfigArr[index] = columnBuilder.build();
-//                columnNameArr[index] = columnName;
-//                continue;
                 p += "date{"+option+"}";
             } else if (converter.getName().equals("Throwable")) {
                 String option = String.valueOf(((ThrowablePatternConverter) converter).getOptions());
@@ -92,6 +89,14 @@ public class Log4j2ColumnFactory implements ColumnFactory {
             ColumnConfig cc = columnBuilder.build();
             columnConfigList.add(index, cc);
             columnNameList.add(index++, columnName);
+        }
+        if (columnConverter.getLogIdName() != null && info.sqlDialect instanceof OracleDialect) {
+            ColumnConfig.Builder columnBuilder = ColumnConfig.newBuilder();
+            String sequenceName = "SEQ_"+tableName+".NEXTVAL";
+            columnBuilder.setName(columnConverter.getLogIdName()).setLiteral(sequenceName);
+            ColumnConfig cc = columnBuilder.build();
+            columnConfigList.add(index, cc);
+//            columnNameList.add(index++, columnConverter.getLogIdName());
         }
 
         tableQueryDataMap.put(tableName, Collections.singletonList(columnConfigList));

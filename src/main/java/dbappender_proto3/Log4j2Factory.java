@@ -5,10 +5,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.appender.db.jdbc.ColumnConfig;
-import org.apache.logging.log4j.core.appender.db.jdbc.ConnectionSource;
-import org.apache.logging.log4j.core.appender.db.jdbc.FactoryMethodConnectionSource;
-import org.apache.logging.log4j.core.appender.db.jdbc.JdbcAppender;
+import org.apache.logging.log4j.core.appender.db.jdbc.*;
 import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
@@ -34,6 +31,7 @@ public class Log4j2Factory {
     }
     public JdbcAppender createDBAppender(Log4j2ColumnFactory columnFactory) {
         JdbcAppender.Builder builder = JdbcAppender.newBuilder();
+//        JdbcDatabaseManager
         ConnectionSource connectionSource = FactoryMethodConnectionSource.createConnectionSource("dbappender_proto3.ConnectionPool","getConnection");
         List<Object> converterList = (List<Object>) columnFactory.getConverterList(info.tableName).get(0);
         ColumnConfig[] columnConfigs = new ColumnConfig[converterList.size()];

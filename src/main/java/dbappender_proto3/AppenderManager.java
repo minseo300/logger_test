@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AppenderManager {
@@ -22,7 +23,7 @@ public class AppenderManager {
     private static AppenderManager appenderManager = new AppenderManager();
 
     private AppenderManager() {
-         if(info.framework.equals("logback")){
+        if(info.framework.equals("logback")){
             columnFactory = new LogbackColumnFactory();
         } else {
             columnFactory = new Log4j2ColumnFactory();
@@ -53,13 +54,15 @@ public class AppenderManager {
     }
 
     private void createTable() {
-        String createTableSQL = info.sqlDialect.getCreateTableQuery(info.tableName);
+        List<String> createTableSQL = info.sqlDialect.getCreateTableQuery(info.tableName);
         System.out.println(createTableSQL);
         Connection connection = ConnectionPool.getConnection();
         Statement statement = null;
         try {
-            statement = connection.createStatement();
-            statement.execute(createTableSQL);
+            for (int i=0 ; i<createTableSQL.size() ; i++){
+                statement = connection.createStatement();
+                statement.execute(createTableSQL.get(i));
+            }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
