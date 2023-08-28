@@ -39,7 +39,7 @@ public class DB2Dialect implements CustomSQLDialect{
             sqlBuilder.append(" INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY ( START WITH 1, INCREMENT BY 1),");
             sqlBuilder.append(" PRIMARY KEY (");
             sqlBuilder.append(columnConverter.getLogIdName());
-            sqlBuilder.append(")");
+            sqlBuilder.append("))");
         } else {
             sqlBuilder.delete(sqlBuilder.length()-2,sqlBuilder.length());
             sqlBuilder.append(")");
